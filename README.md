@@ -43,9 +43,14 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 - H2 element validation with warnings for multiple matches
 - Integration tests for complete workflow scenarios
 
+- Maven build configuration with executable JAR creation
+- Build profiles for development, production, and quick-build scenarios
+- Centralized version management for all dependencies and plugins
+- Maven Shade Plugin for creating self-contained executable JARs
+
 ### 🚧 In Development
 
-- Maven build configuration and executable JAR creation
+- Comprehensive test suite with sample HTML files
 
 ## Requirements
 
@@ -114,7 +119,10 @@ The project is being developed using a spec-driven approach. You can track progr
 - ✅ **Task 6**: Property type mapping from HTML to OpenAPI types
 - ✅ **Task 7**: OpenAPI specification generation with YAML processing
 - ✅ **Task 8**: Command-line interface implementation with Apache Commons CLI
-- 🚧 **Task 9**: Error handling and logging (next)
+- ✅ **Task 9**: Error handling and logging with comprehensive exception hierarchy
+- ✅ **Task 10**: Main workflow orchestration with progress reporting and H2 validation
+- ✅ **Task 11**: Maven build configuration with executable JAR creation and build profiles
+- 🚧 **Task 12**: Comprehensive test suite with sample HTML files (next)
 
 ### For Developers
 
@@ -128,6 +136,49 @@ To build the project:
 
 ```bash
 mvn clean package
+```
+
+## Build Instructions
+
+### Prerequisites
+
+- Java 11 or higher
+- Maven 3.6 or higher
+
+### Building the Application
+
+```bash
+# Clean and compile
+mvn clean compile
+
+# Run tests
+mvn test
+
+# Create executable JAR with dependencies
+mvn clean package
+```
+
+### Build Profiles
+
+```bash
+# Development build (default - runs all tests)
+mvn clean package
+
+# Production build (runs all tests with explicit configuration)
+mvn clean package -Pproduction
+
+# Quick build (skips tests for faster builds)
+mvn clean package -Pquick-build
+```
+
+### Running the Application
+
+```bash
+# Run the executable JAR
+java -jar target/apiweaver-1.0.0-SNAPSHOT.jar --help
+
+# Example usage
+java -jar target/apiweaver-1.0.0-SNAPSHOT.jar -o my-api.yaml -v https://example.com/api-docs
 ```
 
 ## Contributing

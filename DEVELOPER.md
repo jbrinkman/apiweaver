@@ -111,6 +111,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **Main Workflow**: Complete orchestration of all components with progress reporting
 - **Enhanced Logging**: SLF4J-based logging throughout the application
 - **Integration Testing**: Comprehensive workflow validation and component coordination tests
+- **Maven Build System**: Complete build configuration with executable JAR creation and build profiles
 
 ### Architecture Details
 
@@ -173,6 +174,33 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - Validates argument parsing and configuration handling
 - Tests H2 element validation logic with multiple scenarios
 - Verifies progress reporting and helper method functionality
+
+#### Maven Build System
+
+**Build Configuration**
+- Complete `pom.xml` with all required dependencies and plugins
+- Centralized version management through Maven properties
+- Java 11 target with proper compiler configuration
+- UTF-8 encoding for source and reporting
+
+**Dependencies Management**
+- **Core Dependencies**: JSoup (HTML parsing), Jackson (JSON/YAML), Commons CLI (argument parsing)
+- **Logging**: SLF4J API with Logback Classic implementation
+- **Testing**: JUnit 5, Mockito, AssertJ for comprehensive test coverage
+- All versions managed through properties for easy maintenance
+
+**Build Plugins**
+- **Maven Compiler Plugin**: Java 11 compilation with proper configuration
+- **Maven Surefire Plugin**: Test execution with configurable includes
+- **Maven Shade Plugin**: Creates executable JAR with all dependencies bundled
+  - Configured main class: `com.apiweaver.ApiWeaverCli`
+  - Excludes signature files to prevent conflicts
+  - Handles overlapping resources from dependencies
+
+**Build Profiles**
+- **Development Profile** (default): Runs all tests, suitable for development work
+- **Production Profile**: Explicit test configuration for CI/CD environments
+- **Quick-build Profile**: Skips tests for rapid iteration during development
 
 #### Table Extraction Layer
 
