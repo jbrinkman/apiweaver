@@ -49,7 +49,9 @@ apiweaver/
 │   │           └── apiweaver/
 │   │               ├── Configuration.java      # Configuration management
 │   │               ├── FetchException.java     # HTTP fetching exceptions
+│   │               ├── HtmlParser.java         # HTML parsing interface
 │   │               ├── HttpUrlFetcher.java     # HTTP URL fetching implementation
+│   │               ├── JSoupHtmlParser.java    # JSoup-based HTML parser implementation
 │   │               ├── OpenApiProperty.java    # OpenAPI property model
 │   │               ├── OpenApiSpec.java        # OpenAPI specification model
 │   │               ├── PropertyDefinition.java # Property definition model
@@ -60,6 +62,7 @@ apiweaver/
 │               └── apiweaver/
 │                   ├── ConfigurationTest.java
 │                   ├── HttpUrlFetcherTest.java
+│                   ├── JSoupHtmlParserTest.java
 │                   ├── OpenApiPropertyTest.java
 │                   ├── OpenApiSpecTest.java
 │                   └── PropertyDefinitionTest.java
@@ -84,12 +87,12 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **Core Models**: Data structures for OpenAPI properties, specifications, and property definitions
 - **Configuration Management**: Centralized configuration handling with validation
 - **HTTP Fetching**: URL fetching with timeout and user-agent configuration via `HttpUrlFetcher`
+- **HTML Parsing**: JSoup-based HTML parsing with `JSoupHtmlParser` for element extraction
 - **Error Handling**: Comprehensive exception handling with `FetchException`
 
 #### 🚧 Planned Components
 
 - **CLI Layer**: Command-line arguments and user interaction
-- **Parser Layer**: HTML parsing and DOM manipulation
 - **Extractor Layer**: Table data extraction and processing
 - **Mapper Layer**: Type mapping between HTML and OpenAPI formats
 - **Generator Layer**: OpenAPI specification generation and file operations
@@ -104,12 +107,21 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - Protocol validation (HTTP/HTTPS only)
 - Comprehensive error handling for network failures, timeouts, and invalid URLs
 
+#### HTML Parsing Layer
+
+- `HtmlParser` interface provides abstraction for HTML parsing operations
+- `JSoupHtmlParser` implements HTML parsing using the JSoup library
+- Finds H2 elements with id attributes ending in specific suffixes (e.g., "ObjectValues")
+- Locates first table element following a given element in document order
+- Handles various HTML structures and provides detailed error messages
+
 ## Key Dependencies
 
 ### Runtime Dependencies
 
 - **Java 11+**: Core runtime requirement
-- **Built-in HttpURLConnection**: HTTP client for URL fetching (no external dependencies)
+- **Built-in HttpURLConnection**: HTTP client for URL fetching
+- **JSoup 1.17.2**: HTML parsing and DOM manipulation
 
 ### Test Dependencies
 
@@ -118,7 +130,6 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 
 ### Planned Dependencies
 
-- **JSoup**: HTML parsing and DOM manipulation (to be added)
 - **Jackson**: YAML/JSON processing for OpenAPI files (to be added)
 - **Apache Commons CLI**: Command-line argument parsing (to be added)
 - **SLF4J + Logback**: Logging framework (to be added)
@@ -142,6 +153,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 ### Current Test Coverage
 
 - **HttpUrlFetcher**: 16 comprehensive unit tests covering all error scenarios
+- **JSoupHtmlParser**: 19 tests covering HTML parsing, element finding, and table extraction
 - **Configuration**: 15 tests for configuration validation and management
 - **OpenApiProperty**: 11 tests for property model validation
 - **OpenApiSpec**: 9 tests for specification model handling
@@ -182,6 +194,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 ### Current Maven Configuration
 
 - **Java 11**: Source and target compatibility
+- **JSoup**: HTML parsing library (version 1.17.2)
 - **JUnit 5**: Testing framework (version 5.10.1)
 - **Mockito**: Mocking framework (version 5.7.0)
 - **Maven Compiler Plugin**: Version 3.11.0

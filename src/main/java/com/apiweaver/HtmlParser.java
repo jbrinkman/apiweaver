@@ -1,5 +1,7 @@
 package com.apiweaver;
 
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import java.util.List;
 
 /**
@@ -14,7 +16,7 @@ public interface HtmlParser {
      * @param htmlContent the HTML content to parse
      * @return parsed document object
      */
-    Object parseHtml(String htmlContent);
+    Document parseHtml(String htmlContent);
     
     /**
      * Finds H2 elements with id attributes ending in the specified suffix.
@@ -23,7 +25,7 @@ public interface HtmlParser {
      * @param suffix the suffix to match in id attributes
      * @return list of matching H2 elements
      */
-    List<Object> findH2ElementsWithIdEndingIn(Object doc, String suffix);
+    List<Element> findH2ElementsWithIdEndingIn(Document doc, String suffix);
     
     /**
      * Finds the first table element that follows the given element in the DOM.
@@ -32,5 +34,5 @@ public interface HtmlParser {
      * @param element the element to search after
      * @return the first table element found, or null if none exists
      */
-    Object findFirstTableAfterElement(Object doc, Object element);
+    Element findFirstTableAfterElement(Document doc, Element element);
 }

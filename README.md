@@ -11,14 +11,16 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 ### ✅ Currently Implemented
 
 - HTTP/HTTPS URL fetching with configurable timeout and user-agent
-- Comprehensive error handling for network operations
+- HTML parsing with JSoup for extracting specific elements
+- H2 element detection with id suffix matching (e.g., "ObjectValues")
+- Table extraction following H2 headers in document order
+- Comprehensive error handling for network and parsing operations
 - Core data models for OpenAPI specifications and properties
 - Configuration management with validation
 - Extensive unit test coverage
 
 ### 🚧 In Development
 
-- HTML documentation parsing from URLs
 - Property definition extraction from HTML tables
 - OpenAPI 3.1.1 specification generation
 - Command-line interface with configurable options
@@ -70,7 +72,8 @@ The project is being developed using a spec-driven approach. You can track progr
 - ✅ **Task 1**: Set up Maven project structure and core interfaces
 - ✅ **Task 2**: Implement core data models with validation  
 - ✅ **Task 3**: Implement URL fetching and HTTP handling
-- 🚧 **Task 4**: HTML parsing and table extraction (next)
+- ✅ **Task 4**: HTML parsing with JSoup for element extraction
+- 🚧 **Task 5**: Table extraction logic (next)
 
 ### For Developers
 

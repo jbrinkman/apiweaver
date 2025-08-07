@@ -21,7 +21,7 @@
   - Write unit tests for URL fetching with mock HTTP responses
   - _Requirements: 1.1, 1.2, 5.3_
 
-- [ ] 4. Implement HTML parsing with JSoup
+- [x] 4. Implement HTML parsing with JSoup
   - Create JSoupHtmlParser class to parse HTML content
   - Implement methods to find H2 elements with ids ending in "ObjectValues"
   - Implement method to find first table after a given element
