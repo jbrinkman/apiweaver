@@ -34,6 +34,9 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 - Loading and merging with existing OpenAPI specification files
 - Command-line interface with Apache Commons CLI for argument parsing
 - Support for output file, existing file, verbose, timeout, and help options
+- Comprehensive error handling with structured exception hierarchy
+- SLF4J logging integration with configurable log levels and file output
+- Robust error recovery and detailed error reporting for debugging
 
 ### 🚧 In Development
 

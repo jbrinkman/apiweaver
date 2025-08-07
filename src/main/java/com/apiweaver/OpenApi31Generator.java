@@ -11,11 +11,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Implementation of OpenApiGenerator that creates OpenAPI 3.1.1 compliant specifications.
  * Uses Jackson for YAML processing and supports both creating new specs and amending existing ones.
  */
 public class OpenApi31Generator implements OpenApiGenerator {
+    
+    private static final Logger logger = LoggerFactory.getLogger(OpenApi31Generator.class);
     
     private final ObjectMapper yamlMapper;
     
@@ -26,24 +31,43 @@ public class OpenApi31Generator implements OpenApiGenerator {
             .enable(YAMLGenerator.Feature.INDENT_ARRAYS_WITH_INDICATOR);
         
         this.yamlMapper = new ObjectMapper(yamlFactory);
+        logger.debug("OpenApi31Generator initialized with YAML mapper");
     }
     
     @Override
     public OpenApiSpec generateOrAmendSpec(List<OpenApiProperty> properties, OpenApiSpec existing) {
+        if (properties == null) {
+            properties = new ArrayList<>();
+        }
+        
+        if (properties.isEmpty()) {
+            logger.warn("No properties provided for OpenAPI spec generation");
+        } else {
+            logger.info("Generating/amending OpenAPI spec with {} properties", properties.size());
+        }
+        
         OpenApiSpec spec = existing != null ? existing : createNewSpec();
         
-        // Create a schema for the properties
+        if (existing != null) {
+            logger.debug("Amending existing OpenAPI spec");
+        } else {
+            logger.debug("Creating new OpenAPI spec");
+        }
+        
+        // Create a schema for the properties (even if empty)
         OpenApiSpec.Schema schema = createSchemaFromProperties(properties);
         
         // Add the schema to the spec - using a generic name for now
         // In a real implementation, this might be derived from the URL or user input
         spec.addSchema("GeneratedObject", schema);
+        logger.debug("Added schema 'GeneratedObject' with {} properties", properties.size());
         
         return spec;
     }
     
     @Override
     public OpenApiSpec createNewSpec() {
+        logger.debug("Creating new OpenAPI 3.1.1 specification");
         OpenApiSpec spec = new OpenApiSpec();
         
         // Set basic info

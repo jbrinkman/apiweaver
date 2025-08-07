@@ -129,6 +129,30 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - Locates first table element following a given element in document order
 - Handles various HTML structures and provides detailed error messages
 
+#### Error Handling and Logging
+
+**Exception Hierarchy**
+- `ApiWeaverException`: Base exception class with contextual information support
+- `FetchException`: HTTP/network-related errors during URL fetching
+- `ParseException`: HTML parsing and DOM manipulation errors
+- `ExtractionException`: Table extraction and property parsing errors
+- `GenerationException`: OpenAPI specification generation errors
+- `ConfigurationException`: Configuration validation and setup errors
+
+**Logging Framework**
+- SLF4J API with Logback Classic implementation
+- Configurable log levels: DEBUG, INFO, WARN, ERROR
+- Multiple appenders: console, file, and rolling error logs
+- Component-specific loggers for different subsystems
+- Rolling log files with daily rotation and 30-day retention
+- Separate error log files for easier debugging
+
+**Error Recovery**
+- Graceful degradation when possible (e.g., skipping malformed table rows)
+- Detailed error messages with context for debugging
+- Proper resource cleanup in error scenarios
+- Validation at component boundaries to fail fast
+
 #### Table Extraction Layer
 
 - `TableExtractor` interface provides abstraction for extracting property data from HTML tables
@@ -198,6 +222,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **PropertyDefinition**: 11 tests for property definition validation
 - **TimeTapPropertyMapper**: 23 tests for HTML to OpenAPI type mapping
 - **OpenApi31Generator**: 10 comprehensive tests for OpenAPI generation, file I/O, and schema merging
+- **ErrorHandlingTest**: 23 comprehensive tests covering all error scenarios and exception handling across components
 
 ### Test Data (Planned)
 

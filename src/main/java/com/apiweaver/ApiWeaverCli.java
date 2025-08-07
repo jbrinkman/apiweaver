@@ -1,6 +1,9 @@
 package com.apiweaver;
 
 import org.apache.commons.cli.*;
+import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Command-line interface for ApiWeaver.
@@ -8,18 +11,27 @@ import org.apache.commons.cli.*;
  */
 public class ApiWeaverCli {
     
+    private static final Logger logger = LoggerFactory.getLogger(ApiWeaverCli.class);
+    
     private static final String DEFAULT_OUTPUT_FILE = "generated-api.yaml";
     private static final int DEFAULT_TIMEOUT_MS = 30000;
     
     public static void main(String[] args) {
+        logger.info("Starting ApiWeaver CLI with {} arguments", args.length);
+        logger.debug("Arguments: {}", String.join(" ", args));
+        
         ApiWeaverCli cli = new ApiWeaverCli();
         try {
             Configuration config = cli.parseArguments(args);
             if (config != null) {
+                logger.info("Configuration parsed successfully: {}", config);
                 // TODO: Implement main workflow orchestration
                 System.out.println("Configuration parsed successfully: " + config);
+            } else {
+                logger.debug("Configuration is null (help was displayed)");
             }
         } catch (Exception e) {
+            logger.error("Application error: {}", e.getMessage(), e);
             System.err.println("Error: " + e.getMessage());
             System.exit(1);
         }
@@ -33,6 +45,7 @@ public class ApiWeaverCli {
      * @throws ParseException if argument parsing fails
      */
     public Configuration parseArguments(String[] args) throws ParseException {
+        logger.debug("Parsing command-line arguments");
         Options options = createOptions();
         CommandLineParser parser = new DefaultParser();
         
@@ -41,6 +54,7 @@ public class ApiWeaverCli {
             
             // Handle help option
             if (cmd.hasOption("h")) {
+                logger.debug("Help option requested");
                 displayHelp(options);
                 return null;
             }

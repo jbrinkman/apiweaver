@@ -3,11 +3,16 @@ package com.apiweaver;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Implementation of PropertyMapper for TimeTap API documentation.
  * Maps HTML property types to OpenAPI 3.1.1 compliant types and formats.
  */
 public class TimeTapPropertyMapper implements PropertyMapper {
+    
+    private static final Logger logger = LoggerFactory.getLogger(TimeTapPropertyMapper.class);
     
     /**
      * Mapping of TimeTap HTML types to OpenAPI types and formats.
@@ -80,27 +85,38 @@ public class TimeTapPropertyMapper implements PropertyMapper {
     @Override
     public OpenApiProperty mapToOpenApiProperty(PropertyDefinition property) {
         if (property == null) {
+            logger.error("Attempted to map null property definition");
             throw new IllegalArgumentException("Property definition cannot be null");
         }
         
         if (!property.isValid()) {
+            logger.error("Attempted to map invalid property definition: {}", property);
             throw new IllegalArgumentException("Property definition is not valid: " + property);
         }
+        
+        logger.debug("Mapping property '{}' of type '{}' to OpenAPI", property.getName(), property.getType());
         
         String openApiType = mapHtmlTypeToOpenApiType(property.getType());
         String format = getFormatForType(property.getType());
         
-        return OpenApiProperty.builder(property.getName(), openApiType)
+        OpenApiProperty result = OpenApiProperty.builder(property.getName(), openApiType)
                 .format(format)
                 .required(property.isRequired())
                 .readOnly(!property.isWritable())
                 .description(property.getDescription())
                 .build();
+        
+        logger.debug("Mapped property '{}': {} -> {} (format: {}, required: {}, readOnly: {})", 
+            property.getName(), property.getType(), openApiType, format, 
+            property.isRequired(), !property.isWritable());
+        
+        return result;
     }
     
     @Override
     public String mapHtmlTypeToOpenApiType(String htmlType) {
         if (htmlType == null || htmlType.trim().isEmpty()) {
+            logger.debug("Mapping null/empty HTML type to default 'string' type");
             return "string"; // Default fallback type
         }
         
@@ -109,6 +125,7 @@ public class TimeTapPropertyMapper implements PropertyMapper {
         // Direct mapping lookup
         String[] mapping = TYPE_MAPPINGS.get(trimmedType);
         if (mapping != null) {
+            logger.debug("Direct type mapping: '{}' -> '{}'", trimmedType, mapping[0]);
             return mapping[0];
         }
         

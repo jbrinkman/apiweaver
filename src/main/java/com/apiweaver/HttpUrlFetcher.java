@@ -9,11 +9,16 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Implementation of UrlFetcher using Java's built-in HttpURLConnection.
  * Provides configurable timeout and user-agent settings for HTTP requests.
  */
 public class HttpUrlFetcher implements UrlFetcher {
+    
+    private static final Logger logger = LoggerFactory.getLogger(HttpUrlFetcher.class);
     
     private final int timeoutMs;
     private final String userAgent;
@@ -34,21 +39,27 @@ public class HttpUrlFetcher implements UrlFetcher {
      */
     public HttpUrlFetcher(int timeoutMs, String userAgent) {
         if (timeoutMs <= 0) {
+            logger.error("Invalid timeout value: {}", timeoutMs);
             throw new IllegalArgumentException("Timeout must be positive");
         }
         if (userAgent == null || userAgent.trim().isEmpty()) {
+            logger.error("Invalid user agent: {}", userAgent);
             throw new IllegalArgumentException("User agent cannot be null or empty");
         }
         
         this.timeoutMs = timeoutMs;
         this.userAgent = userAgent;
+        logger.debug("HttpUrlFetcher initialized with timeout: {}ms, user-agent: {}", timeoutMs, userAgent);
     }
     
     @Override
     public String fetchHtmlContent(String url) throws FetchException {
         if (url == null || url.trim().isEmpty()) {
+            logger.error("Attempted to fetch content with null or empty URL");
             throw new FetchException("URL cannot be null or empty");
         }
+        
+        logger.info("Fetching HTML content from URL: {}", url);
         
         try {
             URL urlObj = new URL(url.trim());
@@ -56,8 +67,11 @@ public class HttpUrlFetcher implements UrlFetcher {
             // Ensure we're dealing with HTTP/HTTPS protocols
             String protocol = urlObj.getProtocol().toLowerCase();
             if (!protocol.equals("http") && !protocol.equals("https")) {
+                logger.error("Unsupported protocol: {} for URL: {}", protocol, url);
                 throw new FetchException("Unsupported protocol: " + protocol + ". Only HTTP and HTTPS are supported.");
             }
+            
+            logger.debug("Connecting to {} using protocol: {}", url, protocol);
             
             HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
             
@@ -71,9 +85,13 @@ public class HttpUrlFetcher implements UrlFetcher {
             
             // Check response code
             int responseCode = connection.getResponseCode();
+            logger.debug("HTTP response code: {} for URL: {}", responseCode, url);
+            
             if (responseCode < 200 || responseCode >= 300) {
-                throw new FetchException(String.format("HTTP request failed with status %d: %s", 
-                    responseCode, connection.getResponseMessage()));
+                String errorMsg = String.format("HTTP request failed with status %d: %s", 
+                    responseCode, connection.getResponseMessage());
+                logger.error("HTTP request failed for URL: {} - {}", url, errorMsg);
+                throw new FetchException(errorMsg);
             }
             
             // Read response
@@ -87,13 +105,19 @@ public class HttpUrlFetcher implements UrlFetcher {
                 }
             }
             
-            return content.toString();
+            String result = content.toString();
+            logger.info("Successfully fetched {} characters from URL: {}", result.length(), url);
+            logger.debug("Content preview: {}", result.length() > 100 ? result.substring(0, 100) + "..." : result);
+            return result;
             
         } catch (MalformedURLException e) {
+            logger.error("Invalid URL format: {} - {}", url, e.getMessage());
             throw new FetchException("Invalid URL format: " + url, e);
         } catch (SocketTimeoutException e) {
+            logger.error("Request timed out after {}ms for URL: {} - {}", timeoutMs, url, e.getMessage());
             throw new FetchException("Request timed out after " + timeoutMs + "ms for URL: " + url, e);
         } catch (IOException e) {
+            logger.error("IO error while fetching content from URL: {} - {}", url, e.getMessage());
             throw new FetchException("Failed to fetch content from URL: " + url + " - " + e.getMessage(), e);
         }
     }

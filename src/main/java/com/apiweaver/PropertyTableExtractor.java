@@ -6,11 +6,16 @@ import org.jsoup.select.Elements;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Extracts property definitions from HTML tables in TimeTap API documentation.
  * Handles column identification with fuzzy matching and row parsing.
  */
 public class PropertyTableExtractor implements TableExtractor {
+    
+    private static final Logger logger = LoggerFactory.getLogger(PropertyTableExtractor.class);
     
     // Expected column names with variations for fuzzy matching
     private static final Map<String, Pattern> COLUMN_PATTERNS = new HashMap<>();
@@ -26,21 +31,29 @@ public class PropertyTableExtractor implements TableExtractor {
     @Override
     public List<PropertyDefinition> extractProperties(Element table) throws ExtractionException {
         if (table == null) {
+            logger.error("Attempted to extract properties from null table");
             throw new ExtractionException("Table element cannot be null");
         }
         
         if (!"table".equals(table.tagName().toLowerCase())) {
+            logger.error("Attempted to extract properties from non-table element: {}", table.tagName());
             throw new ExtractionException("Element is not a table: " + table.tagName());
         }
         
+        logger.debug("Starting property extraction from table");
+        
         Elements rows = table.select("tr");
         if (rows.isEmpty()) {
+            logger.error("Table contains no rows");
             throw new ExtractionException("Table contains no rows");
         }
+        
+        logger.debug("Found {} rows in table", rows.size());
         
         // Identify column positions
         Map<String, Integer> columnMap = identifyColumns(table);
         validateRequiredColumns(columnMap);
+        logger.debug("Column mapping: {}", columnMap);
         
         List<PropertyDefinition> properties = new ArrayList<>();
         
@@ -57,17 +70,21 @@ public class PropertyTableExtractor implements TableExtractor {
                 PropertyDefinition property = parseRow(row, columnMap);
                 if (property != null && property.isValid()) {
                     properties.add(property);
+                    logger.debug("Successfully parsed property: {}", property.getName());
+                } else {
+                    logger.debug("Skipped invalid property from row");
                 }
             } catch (Exception e) {
-                // Log warning and continue with next row
-                System.err.println("Warning: Failed to parse table row, skipping: " + e.getMessage());
+                logger.warn("Failed to parse table row, skipping: {}", e.getMessage());
             }
         }
         
         if (properties.isEmpty()) {
+            logger.error("No valid properties extracted from table");
             throw new ExtractionException("No valid properties extracted from table");
         }
         
+        logger.info("Successfully extracted {} properties from table", properties.size());
         return properties;
     }
     
