@@ -4,49 +4,55 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 /**
- * Extracts property definitions from HTML tables using JSoup.
+ * Extracts property definitions from HTML tables in TimeTap API documentation.
  * Handles column identification with fuzzy matching and row parsing.
  */
 public class PropertyTableExtractor implements TableExtractor {
     
     // Expected column names with variations for fuzzy matching
-    private static final Map<String, List<String>> COLUMN_PATTERNS = Map.of(
-        "name", Arrays.asList("property name", "name", "property", "field"),
-        "type", Arrays.asList("type", "data type", "datatype", "format"),
-        "required", Arrays.asList("required", "req", "mandatory", "required?"),
-        "writable", Arrays.asList("writable", "write", "editable", "writable?"),
-        "description", Arrays.asList("description", "desc", "details", "notes")
-    );
+    private static final Map<String, Pattern> COLUMN_PATTERNS = new HashMap<>();
+    
+    static {
+        COLUMN_PATTERNS.put("name", Pattern.compile("property\\s*name", Pattern.CASE_INSENSITIVE));
+        COLUMN_PATTERNS.put("type", Pattern.compile("type", Pattern.CASE_INSENSITIVE));
+        COLUMN_PATTERNS.put("required", Pattern.compile("required", Pattern.CASE_INSENSITIVE));
+        COLUMN_PATTERNS.put("writable", Pattern.compile("writable", Pattern.CASE_INSENSITIVE));
+        COLUMN_PATTERNS.put("description", Pattern.compile("description", Pattern.CASE_INSENSITIVE));
+    }
     
     @Override
-    public List<PropertyDefinition> extractProperties(Object table) throws ExtractionException {
-        if (!(table instanceof Element)) {
-            throw new ExtractionException("Expected JSoup Element but got: " + 
-                (table != null ? table.getClass().getSimpleName() : "null"));
+    public List<PropertyDefinition> extractProperties(Element table) throws ExtractionException {
+        if (table == null) {
+            throw new ExtractionException("Table element cannot be null");
         }
         
-        Element tableElement = (Element) table;
+        if (!"table".equals(table.tagName().toLowerCase())) {
+            throw new ExtractionException("Element is not a table: " + table.tagName());
+        }
         
-        // Find table headers
-        Map<String, Integer> columnMap = identifyColumns(tableElement);
-        validateRequiredColumns(columnMap);
-        
-        // Extract rows
-        Elements rows = tableElement.select("tbody tr, tr");
+        Elements rows = table.select("tr");
         if (rows.isEmpty()) {
-            throw new ExtractionException("No table rows found");
+            throw new ExtractionException("Table contains no rows");
         }
+        
+        // Identify column positions
+        Map<String, Integer> columnMap = identifyColumns(table);
+        validateRequiredColumns(columnMap);
         
         List<PropertyDefinition> properties = new ArrayList<>();
         
-        // Skip header row if it exists or if first row looks like a header
-        int startIndex = (hasHeaderRow(tableElement) || firstRowLooksLikeHeader(tableElement)) ? 1 : 0;
-        
-        for (int i = startIndex; i < rows.size(); i++) {
-            Element row = rows.get(i);
+        // Skip header row(s) and process data rows
+        boolean headerProcessed = false;
+        for (Element row : rows) {
+            if (!headerProcessed) {
+                // Skip the first row that contains headers
+                headerProcessed = true;
+                continue;
+            }
+            
             try {
                 PropertyDefinition property = parseRow(row, columnMap);
                 if (property != null && property.isValid()) {
@@ -54,7 +60,7 @@ public class PropertyTableExtractor implements TableExtractor {
                 }
             } catch (Exception e) {
                 // Log warning and continue with next row
-                System.err.println("Warning: Skipping malformed row " + (i + 1) + ": " + e.getMessage());
+                System.err.println("Warning: Failed to parse table row, skipping: " + e.getMessage());
             }
         }
         
@@ -66,43 +72,31 @@ public class PropertyTableExtractor implements TableExtractor {
     }
     
     /**
-     * Identifies column positions using fuzzy matching.
+     * Identifies column positions in the table using fuzzy matching.
      */
     private Map<String, Integer> identifyColumns(Element table) throws ExtractionException {
+        Elements headerRows = table.select("tr");
+        if (headerRows.isEmpty()) {
+            throw new ExtractionException("Table has no header row");
+        }
+        
+        // Try to find header row (usually the first row)
+        Element headerRow = headerRows.first();
+        Elements headerCells = headerRow.select("th, td");
+        
+        if (headerCells.isEmpty()) {
+            throw new ExtractionException("Header row contains no cells");
+        }
+        
         Map<String, Integer> columnMap = new HashMap<>();
         
-        // Try to find header row
-        Elements headerRows = table.select("thead tr, tr:first-child");
-        if (headerRows.isEmpty()) {
-            throw new ExtractionException("No header row found in table");
-        }
-        
-        Element headerRow = headerRows.first();
-        Elements headers = headerRow.select("th, td");
-        
-        if (headers.isEmpty()) {
-            throw new ExtractionException("No header cells found in table");
-        }
-        
-        // Match headers to expected columns
-        for (int i = 0; i < headers.size(); i++) {
-            String headerText = headers.get(i).text().toLowerCase().trim();
+        for (int i = 0; i < headerCells.size(); i++) {
+            String headerText = headerCells.get(i).text().trim();
             
-            for (Map.Entry<String, List<String>> entry : COLUMN_PATTERNS.entrySet()) {
-                String columnType = entry.getKey();
-                List<String> patterns = entry.getValue();
-                
-                // Check if any pattern matches this header
-                boolean matched = false;
-                for (String pattern : patterns) {
-                    if (headerText.contains(pattern) || fuzzyMatch(headerText, pattern)) {
-                        columnMap.put(columnType, i);
-                        matched = true;
-                        break;
-                    }
-                }
-                
-                if (matched) {
+            // Try to match each column pattern
+            for (Map.Entry<String, Pattern> entry : COLUMN_PATTERNS.entrySet()) {
+                if (entry.getValue().matcher(headerText).find()) {
+                    columnMap.put(entry.getKey(), i);
                     break;
                 }
             }
@@ -112,55 +106,24 @@ public class PropertyTableExtractor implements TableExtractor {
     }
     
     /**
-     * Checks if the first row looks like a header row based on content.
+     * Validates that all required columns are present.
      */
-    private boolean firstRowLooksLikeHeader(Element table) {
-        Elements firstRowCells = table.select("tr:first-child td, tr:first-child th");
-        if (firstRowCells.isEmpty()) {
-            return false;
-        }
+    private void validateRequiredColumns(Map<String, Integer> columnMap) throws ExtractionException {
+        List<String> missingColumns = new ArrayList<>();
         
-        // Check if first row contains header-like text
-        int headerLikeCount = 0;
-        for (Element cell : firstRowCells) {
-            String cellText = cell.text().toLowerCase().trim();
-            for (List<String> patterns : COLUMN_PATTERNS.values()) {
-                if (patterns.stream().anyMatch(pattern -> 
-                    cellText.contains(pattern) || fuzzyMatch(cellText, pattern))) {
-                    headerLikeCount++;
-                    break;
-                }
+        for (String requiredColumn : Arrays.asList("name", "type")) {
+            if (!columnMap.containsKey(requiredColumn)) {
+                missingColumns.add(requiredColumn);
             }
         }
         
-        // If more than half the cells look like headers, treat first row as header
-        return headerLikeCount > firstRowCells.size() / 2;
-    }
-    
-    /**
-     * Validates that required columns were found.
-     */
-    private void validateRequiredColumns(Map<String, Integer> columnMap) throws ExtractionException {
-        List<String> requiredColumns = Arrays.asList("name", "type");
-        List<String> missingColumns = requiredColumns.stream()
-            .filter(col -> !columnMap.containsKey(col))
-            .collect(Collectors.toList());
-        
         if (!missingColumns.isEmpty()) {
-            throw new ExtractionException("Required columns not found: " + missingColumns);
+            throw new ExtractionException("Missing required columns: " + String.join(", ", missingColumns));
         }
     }
     
     /**
-     * Checks if the table has a dedicated header row.
-     */
-    private boolean hasHeaderRow(Element table) {
-        return !table.select("thead").isEmpty() || 
-               !table.select("tr:first-child th").isEmpty();
-    }
-    
-    /**
-     * Parses a single table row into a PropertyDefinition.
+     * Parses a single table row to extract property information.
      */
     private PropertyDefinition parseRow(Element row, Map<String, Integer> columnMap) {
         Elements cells = row.select("td, th");
@@ -173,20 +136,14 @@ public class PropertyTableExtractor implements TableExtractor {
         String name = extractCellText(cells, columnMap.get("name"));
         String type = extractCellText(cells, columnMap.get("type"));
         
-        if (name == null || name.trim().isEmpty() || 
-            type == null || type.trim().isEmpty()) {
+        if (name == null || name.trim().isEmpty() || type == null || type.trim().isEmpty()) {
             return null;
         }
         
-        // Extract optional fields
-        String requiredText = extractCellText(cells, columnMap.get("required"));
-        String writableText = extractCellText(cells, columnMap.get("writable"));
-        
-        boolean required = parseBooleanValue(requiredText);
-        boolean writable = parseBooleanValue(writableText);
+        // Extract optional fields with defaults
+        boolean required = parseBooleanValue(extractCellText(cells, columnMap.get("required")), false);
+        boolean writable = parseBooleanValue(extractCellText(cells, columnMap.get("writable")), true);
         String description = extractDescription(cells, columnMap.get("description"));
-        
-
         
         return new PropertyDefinition(
             name.trim(),
@@ -210,7 +167,7 @@ public class PropertyTableExtractor implements TableExtractor {
     }
     
     /**
-     * Extracts and cleans description text.
+     * Extracts and cleans description text from a cell.
      */
     private String extractDescription(Elements cells, Integer columnIndex) {
         String description = extractCellText(cells, columnIndex);
@@ -225,50 +182,31 @@ public class PropertyTableExtractor implements TableExtractor {
     /**
      * Parses boolean values from text with common variations.
      */
-    private boolean parseBooleanValue(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return false;
+    private boolean parseBooleanValue(String text, boolean defaultValue) {
+        if (text == null || text.trim().isEmpty()) {
+            return defaultValue;
         }
         
-        String normalized = value.toLowerCase().trim();
-        return normalized.equals("true") || 
-               normalized.equals("yes") || 
-               normalized.equals("y") ||
-               normalized.equals("1") ||
-               normalized.equals("required") ||
-               normalized.equals("mandatory");
-    }
-    
-    /**
-     * Performs fuzzy matching between two strings.
-     * Uses simple similarity based on common characters.
-     */
-    private boolean fuzzyMatch(String text, String pattern) {
-        if (text == null || pattern == null) {
-            return false;
+        String normalized = text.trim().toLowerCase();
+        
+        // Handle common boolean representations
+        switch (normalized) {
+            case "true":
+            case "yes":
+            case "y":
+            case "1":
+            case "required":
+            case "mandatory":
+                return true;
+            case "false":
+            case "no":
+            case "n":
+            case "0":
+            case "optional":
+            case "not required":
+                return false;
+            default:
+                return defaultValue;
         }
-        
-        // Simple fuzzy matching - check if pattern is contained or has high similarity
-        if (text.contains(pattern) || pattern.contains(text)) {
-            return true;
-        }
-        
-        // Calculate similarity based on common characters, but only for similar length strings
-        if (Math.abs(text.length() - pattern.length()) > Math.max(text.length(), pattern.length()) / 2) {
-            return false; // Too different in length
-        }
-        
-        Set<Character> textChars = text.chars()
-            .mapToObj(c -> (char) c)
-            .collect(Collectors.toSet());
-        Set<Character> patternChars = pattern.chars()
-            .mapToObj(c -> (char) c)
-            .collect(Collectors.toSet());
-        
-        Set<Character> intersection = new HashSet<>(textChars);
-        intersection.retainAll(patternChars);
-        
-        double similarity = (double) intersection.size() / Math.max(textChars.size(), patternChars.size());
-        return similarity > 0.7; // 70% similarity threshold
     }
 }

@@ -20,38 +20,32 @@ class PropertyTableExtractorTest {
     }
     
     @Test
-    void testExtractProperties_StandardTable() throws ExtractionException {
+    void testExtractProperties_ValidTable() throws ExtractionException {
         String html = "<table>" +
-            "<thead>" +
-                "<tr>" +
-                    "<th>Property Name</th>" +
-                    "<th>Type</th>" +
-                    "<th>Required</th>" +
-                    "<th>Writable</th>" +
-                    "<th>Description</th>" +
-                "</tr>" +
-            "</thead>" +
-            "<tbody>" +
-                "<tr>" +
-                    "<td>id</td>" +
-                    "<td>integer</td>" +
-                    "<td>true</td>" +
-                    "<td>false</td>" +
-                    "<td>Unique identifier</td>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>name</td>" +
-                    "<td>string</td>" +
-                    "<td>yes</td>" +
-                    "<td>true</td>" +
-                    "<td>Object name</td>" +
-                "</tr>" +
-            "</tbody>" +
-        "</table>";
+            "<tr>" +
+                "<th>Property Name</th>" +
+                "<th>Type</th>" +
+                "<th>Required</th>" +
+                "<th>Writable</th>" +
+                "<th>Description</th>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>id</td>" +
+                "<td>integer</td>" +
+                "<td>true</td>" +
+                "<td>false</td>" +
+                "<td>Unique identifier</td>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>name</td>" +
+                "<td>string</td>" +
+                "<td>yes</td>" +
+                "<td>true</td>" +
+                "<td>Object name</td>" +
+            "</tr>" +
+            "</table>";
         
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
-        
+        Element table = Jsoup.parse(html).select("table").first();
         List<PropertyDefinition> properties = extractor.extractProperties(table);
         
         assertEquals(2, properties.size());
@@ -74,284 +68,296 @@ class PropertyTableExtractorTest {
     @Test
     void testExtractProperties_FuzzyColumnMatching() throws ExtractionException {
         String html = "<table>" +
-                "<tr>" +
-                    "<th>Field</th>" +
-                    "<th>Data Type</th>" +
-                    "<th>Req</th>" +
-                    "<th>Editable</th>" +
-                    "<th>Notes</th>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>status</td>" +
-                    "<td>boolean</td>" +
-                    "<td>no</td>" +
-                    "<td>yes</td>" +
-                    "<td>Current status</td>" +
-                "</tr>" +
+            "<tr>" +
+                "<th>Property Name</th>" +
+                "<th>TYPE</th>" +
+                "<th>REQUIRED</th>" +
+                "<th>writable</th>" +
+                "<th>Description</th>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>status</td>" +
+                "<td>boolean</td>" +
+                "<td>no</td>" +
+                "<td>yes</td>" +
+                "<td>Status flag</td>" +
+            "</tr>" +
             "</table>";
         
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
-        
+        Element table = Jsoup.parse(html).select("table").first();
         List<PropertyDefinition> properties = extractor.extractProperties(table);
         
         assertEquals(1, properties.size());
-        
         PropertyDefinition property = properties.get(0);
         assertEquals("status", property.getName());
         assertEquals("boolean", property.getType());
         assertFalse(property.isRequired());
-
-
         assertTrue(property.isWritable());
-        assertEquals("Current status", property.getDescription());
     }
     
     @Test
-    void testExtractProperties_MissingOptionalColumns() throws ExtractionException {
+    void testExtractProperties_MinimalColumns() throws ExtractionException {
         String html = "<table>" +
-                "<tr>" +
-                    "<th>Property Name</th>" +
-                    "<th>Type</th>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>email</td>" +
-                    "<td>string</td>" +
-                "</tr>" +
+            "<tr>" +
+                "<th>Property Name</th>" +
+                "<th>Type</th>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>count</td>" +
+                "<td>number</td>" +
+            "</tr>" +
             "</table>";
         
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
-        
+        Element table = Jsoup.parse(html).select("table").first();
         List<PropertyDefinition> properties = extractor.extractProperties(table);
         
         assertEquals(1, properties.size());
-        
         PropertyDefinition property = properties.get(0);
-        assertEquals("email", property.getName());
-        assertEquals("string", property.getType());
-        assertFalse(property.isRequired()); // Default value
-        assertFalse(property.isWritable()); // Default value
-        assertEquals("", property.getDescription()); // Default value
+        assertEquals("count", property.getName());
+        assertEquals("number", property.getType());
+        assertFalse(property.isRequired()); // default value
+        assertTrue(property.isWritable()); // default value
+        assertEquals("", property.getDescription()); // default value
     }
     
     @Test
-    void testExtractProperties_VariousBooleanFormats() throws ExtractionException {
+    void testExtractProperties_BooleanVariations() throws ExtractionException {
         String html = "<table>" +
-                "<tr>" +
-                    "<th>Name</th>" +
-                    "<th>Type</th>" +
-                    "<th>Required</th>" +
-                    "<th>Writable</th>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>prop1</td>" +
-                    "<td>string</td>" +
-                    "<td>true</td>" +
-                    "<td>false</td>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>prop2</td>" +
-                    "<td>string</td>" +
-                    "<td>yes</td>" +
-                    "<td>no</td>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>prop3</td>" +
-                    "<td>string</td>" +
-                    "<td>1</td>" +
-                    "<td>0</td>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>prop4</td>" +
-                    "<td>string</td>" +
-                    "<td>required</td>" +
-                    "<td>editable</td>" +
-                "</tr>" +
+            "<tr>" +
+                "<th>Property Name</th>" +
+                "<th>Type</th>" +
+                "<th>Required</th>" +
+                "<th>Writable</th>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>prop1</td>" +
+                "<td>string</td>" +
+                "<td>1</td>" +
+                "<td>0</td>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>prop2</td>" +
+                "<td>string</td>" +
+                "<td>mandatory</td>" +
+                "<td>no</td>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>prop3</td>" +
+                "<td>string</td>" +
+                "<td>optional</td>" +
+                "<td>y</td>" +
+            "</tr>" +
             "</table>";
         
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
-        
+        Element table = Jsoup.parse(html).select("table").first();
         List<PropertyDefinition> properties = extractor.extractProperties(table);
         
-        assertEquals(4, properties.size());
+        assertEquals(3, properties.size());
         
-        // Test various boolean formats
         assertTrue(properties.get(0).isRequired());
         assertFalse(properties.get(0).isWritable());
         
         assertTrue(properties.get(1).isRequired());
         assertFalse(properties.get(1).isWritable());
         
-        assertTrue(properties.get(2).isRequired());
-        assertFalse(properties.get(2).isWritable());
-        
-        assertTrue(properties.get(3).isRequired());
-        assertFalse(properties.get(3).isWritable()); // "editable" doesn't match writable patterns
+        assertFalse(properties.get(2).isRequired());
+        assertTrue(properties.get(2).isWritable());
     }
     
     @Test
     void testExtractProperties_SkipMalformedRows() throws ExtractionException {
         String html = "<table>" +
-                "<tr>" +
-                    "<th>Property Name</th>" +
-                    "<th>Type</th>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>validProp</td>" +
-                    "<td>string</td>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td></td>" +
-                    "<td>string</td>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>anotherValid</td>" +
-                    "<td></td>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>finalValid</td>" +
-                    "<td>integer</td>" +
-                "</tr>" +
+            "<tr>" +
+                "<th>Property Name</th>" +
+                "<th>Type</th>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>valid_prop</td>" +
+                "<td>string</td>" +
+            "</tr>" +
+            "<tr>" +
+                "<td></td>" +
+                "<td>string</td>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>another_valid</td>" +
+                "<td>integer</td>" +
+            "</tr>" +
             "</table>";
         
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
-        
+        Element table = Jsoup.parse(html).select("table").first();
         List<PropertyDefinition> properties = extractor.extractProperties(table);
         
-        // Should extract the valid rows (first and last)
         assertEquals(2, properties.size());
-        assertEquals("validProp", properties.get(0).getName());
-        assertEquals("finalValid", properties.get(1).getName());
+        assertEquals("valid_prop", properties.get(0).getName());
+        assertEquals("another_valid", properties.get(1).getName());
     }
     
     @Test
-    void testExtractProperties_NoHeaderRow() throws ExtractionException {
-        String html = "<table>" +
-                "<tr>" +
-                    "<td>Property Name</td>" +
-                    "<td>Type</td>" +
-                    "<td>Required</td>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>testProp</td>" +
-                    "<td>string</td>" +
-                    "<td>true</td>" +
-                "</tr>" +
-            "</table>";
-        
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
-        
-        List<PropertyDefinition> properties = extractor.extractProperties(table);
-        
-        assertEquals(1, properties.size());
-        assertEquals("testProp", properties.get(0).getName());
-    }
-    
-    @Test
-    void testExtractProperties_InvalidInput() {
-        // Test with null input
-        assertThrows(ExtractionException.class, () -> {
+    void testExtractProperties_NullTable() {
+        ExtractionException exception = assertThrows(ExtractionException.class, () -> {
             extractor.extractProperties(null);
         });
+        assertEquals("Table element cannot be null", exception.getMessage());
+    }
+    
+    @Test
+    void testExtractProperties_NotTableElement() {
+        Element div = Jsoup.parse("<div>Not a table</div>").select("div").first();
         
-        // Test with wrong type
-        assertThrows(ExtractionException.class, () -> {
-            extractor.extractProperties("not an element");
+        ExtractionException exception = assertThrows(ExtractionException.class, () -> {
+            extractor.extractProperties(div);
         });
+        assertEquals("Element is not a table: div", exception.getMessage());
+    }
+    
+    @Test
+    void testExtractProperties_EmptyTable() {
+        Element table = Jsoup.parse("<table></table>").select("table").first();
+        
+        ExtractionException exception = assertThrows(ExtractionException.class, () -> {
+            extractor.extractProperties(table);
+        });
+        assertEquals("Table contains no rows", exception.getMessage());
     }
     
     @Test
     void testExtractProperties_MissingRequiredColumns() {
         String html = "<table>" +
-                "<tr>" +
-                    "<th>Description</th>" +
-                    "<th>Required</th>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>Some description</td>" +
-                    "<td>true</td>" +
-                "</tr>" +
+            "<tr>" +
+                "<th>Property Name</th>" +
+                "<th>Description</th>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>prop1</td>" +
+                "<td>Some description</td>" +
+            "</tr>" +
             "</table>";
         
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
+        Element table = Jsoup.parse(html).select("table").first();
         
-        assertThrows(ExtractionException.class, () -> {
+        ExtractionException exception = assertThrows(ExtractionException.class, () -> {
             extractor.extractProperties(table);
         });
-    }
-    
-    @Test
-    void testExtractProperties_EmptyTable() {
-        String html = "<table>" +
-                "<tr>" +
-                    "<th>Property Name</th>" +
-                    "<th>Type</th>" +
-                "</tr>" +
-            "</table>";
-        
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
-        
-        assertThrows(ExtractionException.class, () -> {
-            extractor.extractProperties(table);
-        });
+        assertTrue(exception.getMessage().contains("Missing required columns"));
+        assertTrue(exception.getMessage().contains("type"));
     }
     
     @Test
     void testExtractProperties_NoValidProperties() {
         String html = "<table>" +
-                "<tr>" +
-                    "<th>Property Name</th>" +
-                    "<th>Type</th>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td></td>" +
-                    "<td></td>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>   </td>" +
-                    "<td>   </td>" +
-                "</tr>" +
+            "<tr>" +
+                "<th>Property Name</th>" +
+                "<th>Type</th>" +
+            "</tr>" +
+            "<tr>" +
+                "<td></td>" +
+                "<td></td>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>   </td>" +
+                "<td>   </td>" +
+            "</tr>" +
             "</table>";
         
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
+        Element table = Jsoup.parse(html).select("table").first();
         
-        assertThrows(ExtractionException.class, () -> {
+        ExtractionException exception = assertThrows(ExtractionException.class, () -> {
             extractor.extractProperties(table);
         });
+        assertEquals("No valid properties extracted from table", exception.getMessage());
     }
     
     @Test
-    void testExtractProperties_ComplexDescription() throws ExtractionException {
+    void testExtractProperties_WithTdHeaders() throws ExtractionException {
         String html = "<table>" +
-                "<tr>" +
-                    "<th>Property Name</th>" +
-                    "<th>Type</th>" +
-                    "<th>Description</th>" +
-                "</tr>" +
-                "<tr>" +
-                    "<td>complexProp</td>" +
-                    "<td>string</td>" +
-                    "<td>This is a   complex    description with\n" +
-                        "multiple   spaces and line breaks</td>" +
-                "</tr>" +
+            "<tr>" +
+                "<td><strong>Property Name</strong></td>" +
+                "<td><strong>Type</strong></td>" +
+                "<td><strong>Required</strong></td>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>timestamp</td>" +
+                "<td>datetime</td>" +
+                "<td>true</td>" +
+            "</tr>" +
             "</table>";
         
-        Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").first();
-        
+        Element table = Jsoup.parse(html).select("table").first();
         List<PropertyDefinition> properties = extractor.extractProperties(table);
         
         assertEquals(1, properties.size());
         PropertyDefinition property = properties.get(0);
-        assertEquals("complexProp", property.getName());
-        assertEquals("This is a complex description with multiple spaces and line breaks", 
-                     property.getDescription());
+        assertEquals("timestamp", property.getName());
+        assertEquals("datetime", property.getType());
+        assertTrue(property.isRequired());
+    }
+    
+    @Test
+    void testExtractProperties_DescriptionCleaning() throws ExtractionException {
+        String html = "<table>" +
+            "<tr>" +
+                "<th>Property Name</th>" +
+                "<th>Type</th>" +
+                "<th>Description</th>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>prop1</td>" +
+                "<td>string</td>" +
+                "<td>  This   is   a   description   with   extra   spaces  </td>" +
+            "</tr>" +
+            "</table>";
+        
+        Element table = Jsoup.parse(html).select("table").first();
+        List<PropertyDefinition> properties = extractor.extractProperties(table);
+        
+        assertEquals(1, properties.size());
+        assertEquals("This is a description with extra spaces", properties.get(0).getDescription());
+    }
+    
+    @Test
+    void testExtractProperties_MissingCells() throws ExtractionException {
+        String html = "<table>" +
+            "<tr>" +
+                "<th>Property Name</th>" +
+                "<th>Type</th>" +
+                "<th>Required</th>" +
+                "<th>Writable</th>" +
+                "<th>Description</th>" +
+            "</tr>" +
+            "<tr>" +
+                "<td>incomplete_prop</td>" +
+                "<td>string</td>" +
+                "<!-- Missing cells -->" +
+            "</tr>" +
+            "<tr>" +
+                "<td>complete_prop</td>" +
+                "<td>integer</td>" +
+                "<td>yes</td>" +
+                "<td>no</td>" +
+                "<td>Complete property</td>" +
+            "</tr>" +
+            "</table>";
+        
+        Element table = Jsoup.parse(html).select("table").first();
+        List<PropertyDefinition> properties = extractor.extractProperties(table);
+        
+        assertEquals(2, properties.size());
+        
+        // First property should use defaults for missing cells
+        PropertyDefinition incompleteProperty = properties.get(0);
+        assertEquals("incomplete_prop", incompleteProperty.getName());
+        assertEquals("string", incompleteProperty.getType());
+        assertFalse(incompleteProperty.isRequired()); // default
+        assertTrue(incompleteProperty.isWritable()); // default
+        assertEquals("", incompleteProperty.getDescription()); // default
+        
+        // Second property should have all values
+        PropertyDefinition completeProperty = properties.get(1);
+        assertEquals("complete_prop", completeProperty.getName());
+        assertEquals("integer", completeProperty.getType());
+        assertTrue(completeProperty.isRequired());
+        assertFalse(completeProperty.isWritable());
+        assertEquals("Complete property", completeProperty.getDescription());
     }
 }

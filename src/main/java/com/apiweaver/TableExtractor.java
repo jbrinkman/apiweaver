@@ -1,5 +1,6 @@
 package com.apiweaver;
 
+import org.jsoup.nodes.Element;
 import java.util.List;
 
 /**
@@ -15,5 +16,5 @@ public interface TableExtractor {
      * @return list of property definitions extracted from the table
      * @throws ExtractionException if the table structure is invalid or cannot be parsed
      */
-    List<PropertyDefinition> extractProperties(Object table) throws ExtractionException;
+    List<PropertyDefinition> extractProperties(Element table) throws ExtractionException;
 }
