@@ -263,11 +263,31 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 
 - **ApiWeaverCli**: 17 comprehensive tests covering argument parsing, validation, and error handling
 - **HttpUrlFetcher**: 16 comprehensive unit tests covering all error scenarios
-- **JSoupHtmlParser**: 19 tests covering HTML parsing, element finding, and table extraction
+- **JSoupHtmlParser**: 23 tests covering HTML parsing, element finding, table extraction, and real-world HTML samples
 - **PropertyTableExtractor**: 13 tests covering table extraction, column matching, and edge cases
 - **Configuration**: 15 tests for configuration validation and management
 - **OpenApiProperty**: 11 tests for property model validation
 - **OpenApiSpec**: 9 tests for specification model handling
+- **FileIOAndOpenApiHandling**: 5 tests for file I/O operations and OpenAPI file handling
+- **WorkflowIntegration**: 7 tests for complete workflow orchestration
+
+### Real-World HTML Testing
+
+The test suite includes real-world HTML sample files that simulate TimeTap API documentation:
+
+- Tests for typical TimeTap resource HTML with H2 elements and tables
+- Tests for multiple H2 elements with "ObjectValues" suffix and associated tables
+- Tests for scenarios with no matching H2 elements
+- Tests for handling malformed HTML tables gracefully
+
+### File I/O and OpenAPI Testing
+
+Comprehensive tests for file operations and OpenAPI handling:
+
+- Writing OpenAPI specifications to YAML files
+- Loading existing OpenAPI specifications from files
+- Handling non-existent files and invalid YAML gracefully
+- Merging existing and new OpenAPI specifications
 - **PropertyDefinition**: 11 tests for property definition validation
 - **TimeTapPropertyMapper**: 23 tests for HTML to OpenAPI type mapping
 - **OpenApi31Generator**: 10 comprehensive tests for OpenAPI generation, file I/O, and schema merging

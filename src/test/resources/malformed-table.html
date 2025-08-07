@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Malformed Table - Test Case</title>
+</head>
+<body>
+    <div id="main-content">
+        <h1>Test Document with Malformed Table</h1>
+        
+        <h2 id="TestObjectValues">Test Object Values</h2>
+        
+        <!-- Table with missing closing tags and inconsistent structure -->
+        <table class="confluenceTable">
+            <tbody>
+                <tr>
+                    <th class="confluenceTh">Property</th>
+                    <th class="confluenceTh">Type</th>
+                    <th class="confluenceTh">Description</th>
+                </tr>
+                <tr>
+                    <td class="confluenceTd">validProperty</td>
+                    <td class="confluenceTd">string</td>
+                    <td class="confluenceTd">This is a valid row.</td>
+                </tr>
+                <tr>
+                    <td class="confluenceTd">missingTypeCell</td>
+                    <!-- Missing type cell -->
+                    <td class="confluenceTd">Description without type.</td>
+                </tr>
+                <tr>
+                    <td class="confluenceTd">extraCell</td>
+                    <td class="confluenceTd">string</td>
+                    <td class="confluenceTd">Normal description</td>
+                    <td class="confluenceTd">Extra unexpected cell</td>
+                </tr>
+                <!-- Missing closing tr tag -->
+                <tr>
+                    <td class="confluenceTd">unclosedRow</td>
+                    <td class="confluenceTd">boolean</td>
+                    <td class="confluenceTd">This row is not properly closed.
+                
+                <tr>
+                    <td class="confluenceTd">emptyDescription</td>
+                    <td class="confluenceTd">integer</td>
+                    <td class="confluenceTd"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

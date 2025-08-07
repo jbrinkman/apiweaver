@@ -48,9 +48,17 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 - Centralized version management for all dependencies and plugins
 - Maven Shade Plugin for creating self-contained executable JARs
 
+- Comprehensive test suite with real-world HTML samples
+- File I/O testing for OpenAPI specification handling
+- Integration tests for complete workflow validation
+- 180+ unit and integration tests with high code coverage
+
 ### 🚧 In Development
 
-- Comprehensive test suite with sample HTML files
+- Graceful HTML structure handling for variations in HTML format
+- Adaptive parsing for different HTML structures
+- Special character and encoding handling
+- Validation and clear error messages for unexpected HTML structures
 
 ## Requirements
 
@@ -122,7 +130,8 @@ The project is being developed using a spec-driven approach. You can track progr
 - ✅ **Task 9**: Error handling and logging with comprehensive exception hierarchy
 - ✅ **Task 10**: Main workflow orchestration with progress reporting and H2 validation
 - ✅ **Task 11**: Maven build configuration with executable JAR creation and build profiles
-- 🚧 **Task 12**: Comprehensive test suite with sample HTML files (next)
+- ✅ **Task 12**: Comprehensive test suite with sample HTML files and file I/O testing
+- 🚧 **Task 13**: Graceful HTML structure handling (next)
 
 ### For Developers
 

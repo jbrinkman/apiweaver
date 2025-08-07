@@ -2,11 +2,16 @@ package com.apiweaver;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -410,6 +415,147 @@ class JSoupHtmlParserTest {
             assertNotNull(projectTable);
             assertEquals(2, projectTable.select("tr").size()); // header + 1 data row
             assertEquals("projectId", projectTable.select("tbody tr").first().select("td").first().text());
+        }
+    }
+    
+    @Nested
+    @DisplayName("Real-world HTML sample tests")
+    class RealWorldHtmlTests {
+        
+        private String loadResourceFile(String filename) throws IOException {
+            Path resourcePath = Paths.get("src", "test", "resources", filename);
+            return Files.readString(resourcePath);
+        }
+        
+        @Test
+        @DisplayName("Should parse and extract from TimeTap Resource HTML")
+        void shouldParseTimeTapResourceHtml() throws IOException {
+            // Load the sample HTML file
+            String htmlContent = loadResourceFile("sample-timetap-resource.html");
+            Document doc = parser.parseHtml(htmlContent);
+            
+            // Test finding H2 elements with ObjectValues suffix
+            List<Element> h2Elements = parser.findH2ElementsWithIdEndingIn(doc, "ObjectValues");
+            assertEquals(1, h2Elements.size(), "Should find exactly one H2 element with ObjectValues suffix");
+            assertEquals("ResourceObjectValues", h2Elements.get(0).attr("id"));
+            assertEquals("Resource Object Values", h2Elements.get(0).text());
+            
+            // Test finding the table after the H2 element
+            Element h2Element = h2Elements.get(0);
+            Element table = parser.findFirstTableAfterElement(doc, h2Element);
+            assertNotNull(table, "Should find a table after the H2 element");
+            assertEquals("confluenceTable", table.className());
+            
+            // Verify table structure
+            Elements rows = table.select("tr");
+            assertTrue(rows.size() > 1, "Table should have multiple rows");
+            
+            // Verify header row
+            Element headerRow = rows.first();
+            Elements headerCells = headerRow.select("th");
+            assertEquals(3, headerCells.size(), "Header row should have 3 cells");
+            assertEquals("Property", headerCells.get(0).text());
+            assertEquals("Type", headerCells.get(1).text());
+            assertEquals("Description", headerCells.get(2).text());
+            
+            // Verify a data row
+            Element dataRow = rows.get(1);
+            Elements dataCells = dataRow.select("td");
+            assertEquals(3, dataCells.size(), "Data row should have 3 cells");
+            assertEquals("active", dataCells.get(0).text());
+            assertEquals("boolean", dataCells.get(1).text());
+        }
+        
+        @Test
+        @DisplayName("Should handle multiple H2 elements with ObjectValues suffix")
+        void shouldHandleMultipleObjectValuesSections() throws IOException {
+            // Load the sample HTML file with multiple ObjectValues sections
+            String htmlContent = loadResourceFile("multiple-objectvalues.html");
+            Document doc = parser.parseHtml(htmlContent);
+            
+            // Test finding all H2 elements with ObjectValues suffix
+            List<Element> h2Elements = parser.findH2ElementsWithIdEndingIn(doc, "ObjectValues");
+            assertEquals(3, h2Elements.size(), "Should find exactly three H2 elements with ObjectValues suffix");
+            
+            // Verify the IDs of the found elements
+            assertEquals("FirstObjectValues", h2Elements.get(0).attr("id"));
+            assertEquals("SecondObjectValues", h2Elements.get(1).attr("id"));
+            assertEquals("ThirdObjectValues", h2Elements.get(2).attr("id"));
+            
+            // Test finding tables after each H2 element
+            for (Element h2Element : h2Elements) {
+                Element table = parser.findFirstTableAfterElement(doc, h2Element);
+                assertNotNull(table, "Should find a table after each H2 element");
+                assertEquals("confluenceTable", table.className());
+                
+                // Verify the property in the first data row matches the expected pattern
+                Element dataRow = table.select("tr").get(1);
+                String propertyName = dataRow.select("td").first().text();
+                
+                if (h2Element.attr("id").equals("FirstObjectValues")) {
+                    assertEquals("firstProperty", propertyName);
+                } else if (h2Element.attr("id").equals("SecondObjectValues")) {
+                    assertEquals("secondProperty", propertyName);
+                } else if (h2Element.attr("id").equals("ThirdObjectValues")) {
+                    assertEquals("thirdProperty", propertyName);
+                }
+            }
+        }
+        
+        @Test
+        @DisplayName("Should handle HTML with no ObjectValues sections")
+        void shouldHandleNoObjectValuesSections() throws IOException {
+            // Load the sample HTML file with no ObjectValues sections
+            String htmlContent = loadResourceFile("no-objectvalues.html");
+            Document doc = parser.parseHtml(htmlContent);
+            
+            // Test finding H2 elements with ObjectValues suffix
+            List<Element> h2Elements = parser.findH2ElementsWithIdEndingIn(doc, "ObjectValues");
+            assertTrue(h2Elements.isEmpty(), "Should not find any H2 elements with ObjectValues suffix");
+            
+            // Verify other H2 elements exist but weren't matched
+            Elements allH2Elements = doc.select("h2");
+            assertFalse(allH2Elements.isEmpty(), "Document should contain H2 elements");
+            assertEquals(4, allH2Elements.size(), "Document should contain 4 H2 elements");
+        }
+        
+        @Test
+        @DisplayName("Should handle malformed HTML tables gracefully")
+        void shouldHandleMalformedTables() throws IOException {
+            // Load the sample HTML file with malformed tables
+            String htmlContent = loadResourceFile("malformed-table.html");
+            Document doc = parser.parseHtml(htmlContent);
+            
+            // Test finding H2 elements with ObjectValues suffix
+            List<Element> h2Elements = parser.findH2ElementsWithIdEndingIn(doc, "ObjectValues");
+            assertEquals(1, h2Elements.size(), "Should find exactly one H2 element with ObjectValues suffix");
+            
+            // Test finding the table after the H2 element
+            Element h2Element = h2Elements.get(0);
+            Element table = parser.findFirstTableAfterElement(doc, h2Element);
+            assertNotNull(table, "Should find a table after the H2 element even if malformed");
+            
+            // JSoup should normalize the HTML, so we can still access rows
+            Elements rows = table.select("tr");
+            assertTrue(rows.size() > 1, "Table should have multiple rows");
+            
+            // Check that we can access the first valid row without exceptions
+            Element firstValidRow = rows.get(1);
+            Elements cells = firstValidRow.select("td");
+            assertEquals(3, cells.size(), "First valid row should have 3 cells");
+            assertEquals("validProperty", cells.get(0).text());
+            
+            // Check a row with missing cells
+            Element rowWithMissingCell = rows.get(2);
+            Elements missingCells = rowWithMissingCell.select("td");
+            assertEquals(2, missingCells.size(), "Row with missing cell should have 2 cells");
+            assertEquals("missingTypeCell", missingCells.get(0).text());
+            
+            // Check a row with extra cells
+            Element rowWithExtraCell = rows.get(3);
+            Elements extraCells = rowWithExtraCell.select("td");
+            assertEquals(4, extraCells.size(), "Row with extra cell should have 4 cells");
+            assertEquals("extraCell", extraCells.get(0).text());
         }
     }
 }
