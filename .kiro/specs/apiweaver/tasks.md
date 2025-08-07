@@ -49,7 +49,7 @@
   - Write unit tests for schema generation and merging logic
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 8. Implement command-line interface
+- [x] 8. Implement command-line interface
   - Create ApiWeaverCli class with main method
   - Implement command-line argument parsing using Apache Commons CLI
   - Add support for output file, existing file, verbose, timeout, and help options

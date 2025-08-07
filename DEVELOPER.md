@@ -47,7 +47,9 @@ apiweaver/
 │   │   └── java/
 │   │       └── com/
 │   │           └── apiweaver/
+│   │               ├── ApiWeaverCli.java       # Command-line interface
 │   │               ├── Configuration.java      # Configuration management
+│   │               ├── ExtractionException.java # Table extraction exceptions
 │   │               ├── FetchException.java     # HTTP fetching exceptions
 │   │               ├── HtmlParser.java         # HTML parsing interface
 │   │               ├── HttpUrlFetcher.java     # HTTP URL fetching implementation
@@ -58,12 +60,15 @@ apiweaver/
 │   │               ├── OpenApiSpec.java        # OpenAPI specification model
 │   │               ├── PropertyDefinition.java # Property definition model
 │   │               ├── PropertyMapper.java     # Property mapping interface
+│   │               ├── PropertyTableExtractor.java # Table extraction implementation
+│   │               ├── TableExtractor.java     # Table extraction interface
 │   │               ├── TimeTapPropertyMapper.java # HTML to OpenAPI type mapper
 │   │               └── UrlFetcher.java         # URL fetching interface
 │   └── test/
 │       └── java/
 │           └── com/
 │               └── apiweaver/
+│                   ├── ApiWeaverCliTest.java
 │                   ├── ConfigurationTest.java
 │                   ├── HttpUrlFetcherTest.java
 │                   ├── JSoupHtmlParserTest.java
@@ -71,6 +76,7 @@ apiweaver/
 │                   ├── OpenApiPropertyTest.java
 │                   ├── OpenApiSpecTest.java
 │                   ├── PropertyDefinitionTest.java
+│                   ├── PropertyTableExtractorTest.java
 │                   └── TimeTapPropertyMapperTest.java
 ├── .kiro/
 │   ├── specs/
@@ -97,12 +103,13 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **Table Extraction**: Property extraction from HTML tables with `PropertyTableExtractor`
 - **Property Type Mapping**: HTML to OpenAPI type conversion with `TimeTapPropertyMapper`
 - **OpenAPI Generation**: OpenAPI 3.1.1 specification generation with `OpenApi31Generator`
+- **CLI Layer**: Command-line interface with Apache Commons CLI for argument parsing
 - **Error Handling**: Comprehensive exception handling with `FetchException` and `ExtractionException`
 
 #### 🚧 Planned Components
 
-- **CLI Layer**: Command-line arguments and user interaction
 - **Main Workflow**: Orchestration of all components for complete processing
+- **Enhanced Logging**: SLF4J-based logging throughout the application
 
 ### Architecture Details
 
@@ -152,6 +159,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **Jackson Core 2.16.1**: JSON/YAML processing core functionality
 - **Jackson Databind 2.16.1**: Object mapping for JSON/YAML
 - **Jackson YAML 2.16.1**: YAML format support for OpenAPI files
+- **Apache Commons CLI 1.6.0**: Command-line argument parsing
 
 ### Test Dependencies
 
@@ -160,7 +168,6 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 
 ### Planned Dependencies
 
-- **Apache Commons CLI**: Command-line argument parsing (to be added)
 - **SLF4J + Logback**: Logging framework (to be added)
 
 ## Testing Strategy
@@ -181,9 +188,10 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 
 ### Current Test Coverage
 
+- **ApiWeaverCli**: 17 comprehensive tests covering argument parsing, validation, and error handling
 - **HttpUrlFetcher**: 16 comprehensive unit tests covering all error scenarios
 - **JSoupHtmlParser**: 19 tests covering HTML parsing, element finding, and table extraction
-- **PropertyTableExtractor**: 11 tests covering table extraction, column matching, and edge cases
+- **PropertyTableExtractor**: 13 tests covering table extraction, column matching, and edge cases
 - **Configuration**: 15 tests for configuration validation and management
 - **OpenApiProperty**: 11 tests for property model validation
 - **OpenApiSpec**: 9 tests for specification model handling
@@ -228,6 +236,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **Java 11**: Source and target compatibility
 - **JSoup**: HTML parsing library (version 1.17.2)
 - **Jackson**: JSON/YAML processing (version 2.16.1)
+- **Apache Commons CLI**: Command-line argument parsing (version 1.6.0)
 - **JUnit 5**: Testing framework (version 5.10.1)
 - **Mockito**: Mocking framework (version 5.7.0)
 - **Maven Compiler Plugin**: Version 3.11.0

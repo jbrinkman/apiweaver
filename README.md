@@ -32,10 +32,11 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 - OpenAPI 3.1.1 specification generation with Jackson YAML processing
 - Schema creation from extracted properties with proper type mapping
 - Loading and merging with existing OpenAPI specification files
+- Command-line interface with Apache Commons CLI for argument parsing
+- Support for output file, existing file, verbose, timeout, and help options
 
 ### 🚧 In Development
 
-- Command-line interface with configurable options
 - Main workflow orchestration and error handling
 
 ## Requirements
@@ -62,9 +63,9 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 
 ## Usage
 
-> **Note**: ApiWeaver is currently in active development. The command-line interface is not yet implemented. The current implementation provides core HTTP fetching capabilities and data models.
+> **Note**: ApiWeaver is currently in active development. The command-line interface has been implemented but the main workflow orchestration is still in progress.
 
-### Planned Usage (Coming Soon)
+### Command-Line Interface
 
 ```bash
 java -jar target/apiweaver.jar [OPTIONS] <URL>
@@ -75,6 +76,22 @@ Options:
   -v, --verbose          Enable verbose output
   -t, --timeout <ms>     HTTP timeout in milliseconds (default: 30000)
   -h, --help             Display help information
+```
+
+### Examples
+
+```bash
+# Basic usage with default output file
+java -jar target/apiweaver.jar https://api.timetap.com/docs
+
+# Specify custom output file
+java -jar target/apiweaver.jar -o my-api.yaml https://api.timetap.com/docs
+
+# Amend existing OpenAPI file with verbose output
+java -jar target/apiweaver.jar -e existing-api.yaml -v https://api.timetap.com/docs
+
+# Set custom timeout
+java -jar target/apiweaver.jar -t 60000 https://api.timetap.com/docs
 ```
 
 ### Current Development Status
@@ -88,7 +105,8 @@ The project is being developed using a spec-driven approach. You can track progr
 - ✅ **Task 5**: Table extraction logic with fuzzy column matching
 - ✅ **Task 6**: Property type mapping from HTML to OpenAPI types
 - ✅ **Task 7**: OpenAPI specification generation with YAML processing
-- 🚧 **Task 8**: Command-line interface implementation (next)
+- ✅ **Task 8**: Command-line interface implementation with Apache Commons CLI
+- 🚧 **Task 9**: Error handling and logging (next)
 
 ### For Developers
 
