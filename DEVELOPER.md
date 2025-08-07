@@ -52,6 +52,8 @@ apiweaver/
 │   │               ├── HtmlParser.java         # HTML parsing interface
 │   │               ├── HttpUrlFetcher.java     # HTTP URL fetching implementation
 │   │               ├── JSoupHtmlParser.java    # JSoup-based HTML parser implementation
+│   │               ├── OpenApi31Generator.java # OpenAPI 3.1.1 specification generator
+│   │               ├── OpenApiGenerator.java   # OpenAPI generation interface
 │   │               ├── OpenApiProperty.java    # OpenAPI property model
 │   │               ├── OpenApiSpec.java        # OpenAPI specification model
 │   │               ├── PropertyDefinition.java # Property definition model
@@ -65,6 +67,7 @@ apiweaver/
 │                   ├── ConfigurationTest.java
 │                   ├── HttpUrlFetcherTest.java
 │                   ├── JSoupHtmlParserTest.java
+│                   ├── OpenApi31GeneratorTest.java
 │                   ├── OpenApiPropertyTest.java
 │                   ├── OpenApiSpecTest.java
 │                   ├── PropertyDefinitionTest.java
@@ -93,13 +96,13 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **HTML Parsing**: JSoup-based HTML parsing with `JSoupHtmlParser` for element extraction
 - **Table Extraction**: Property extraction from HTML tables with `PropertyTableExtractor`
 - **Property Type Mapping**: HTML to OpenAPI type conversion with `TimeTapPropertyMapper`
+- **OpenAPI Generation**: OpenAPI 3.1.1 specification generation with `OpenApi31Generator`
 - **Error Handling**: Comprehensive exception handling with `FetchException` and `ExtractionException`
 
 #### 🚧 Planned Components
 
 - **CLI Layer**: Command-line arguments and user interaction
-- **Mapper Layer**: Type mapping between HTML and OpenAPI formats
-- **Generator Layer**: OpenAPI specification generation and file operations
+- **Main Workflow**: Orchestration of all components for complete processing
 
 ### Architecture Details
 
@@ -129,6 +132,16 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - Handles malformed rows gracefully by skipping invalid data and continuing processing
 - Detects header-like content in first rows and adjusts parsing accordingly
 
+#### OpenAPI Generation Layer
+
+- `OpenApiGenerator` interface provides abstraction for OpenAPI specification generation
+- `OpenApi31Generator` implements OpenAPI 3.1.1 compliant schema generation using Jackson
+- Creates new OpenAPI specifications with proper structure and metadata
+- Loads and merges with existing OpenAPI files while preserving existing schemas
+- Converts extracted properties to OpenAPI schema format with proper type mapping
+- Handles required properties, read-only flags, and property descriptions
+- Supports YAML file I/O operations with proper error handling
+
 ## Key Dependencies
 
 ### Runtime Dependencies
@@ -136,6 +149,9 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **Java 11+**: Core runtime requirement
 - **Built-in HttpURLConnection**: HTTP client for URL fetching
 - **JSoup 1.17.2**: HTML parsing and DOM manipulation
+- **Jackson Core 2.16.1**: JSON/YAML processing core functionality
+- **Jackson Databind 2.16.1**: Object mapping for JSON/YAML
+- **Jackson YAML 2.16.1**: YAML format support for OpenAPI files
 
 ### Test Dependencies
 
@@ -144,7 +160,6 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 
 ### Planned Dependencies
 
-- **Jackson**: YAML/JSON processing for OpenAPI files (to be added)
 - **Apache Commons CLI**: Command-line argument parsing (to be added)
 - **SLF4J + Logback**: Logging framework (to be added)
 
@@ -174,6 +189,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **OpenApiSpec**: 9 tests for specification model handling
 - **PropertyDefinition**: 11 tests for property definition validation
 - **TimeTapPropertyMapper**: 23 tests for HTML to OpenAPI type mapping
+- **OpenApi31Generator**: 10 comprehensive tests for OpenAPI generation, file I/O, and schema merging
 
 ### Test Data (Planned)
 
@@ -211,6 +227,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 
 - **Java 11**: Source and target compatibility
 - **JSoup**: HTML parsing library (version 1.17.2)
+- **Jackson**: JSON/YAML processing (version 2.16.1)
 - **JUnit 5**: Testing framework (version 5.10.1)
 - **Mockito**: Mocking framework (version 5.7.0)
 - **Maven Compiler Plugin**: Version 3.11.0

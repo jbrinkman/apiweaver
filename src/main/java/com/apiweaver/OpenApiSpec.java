@@ -1,6 +1,7 @@
 package com.apiweaver;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -110,6 +111,7 @@ public class OpenApiSpec {
         private String type;
         private Map<String, Object> properties;
         private String description;
+        private List<String> required;
 
         public Schema() {
             this.properties = new HashMap<>();
@@ -139,6 +141,14 @@ public class OpenApiSpec {
             this.description = description;
         }
 
+        public List<String> getRequired() {
+            return required;
+        }
+
+        public void setRequired(List<String> required) {
+            this.required = required;
+        }
+
         /**
          * Adds a property to this schema.
          * 
@@ -159,12 +169,13 @@ public class OpenApiSpec {
             Schema schema = (Schema) o;
             return Objects.equals(type, schema.type) &&
                    Objects.equals(properties, schema.properties) &&
-                   Objects.equals(description, schema.description);
+                   Objects.equals(description, schema.description) &&
+                   Objects.equals(required, schema.required);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(type, properties, description);
+            return Objects.hash(type, properties, description, required);
         }
     }
 

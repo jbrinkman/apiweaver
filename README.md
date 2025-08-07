@@ -29,12 +29,14 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 - Property type mapping from HTML types to OpenAPI 3.1.1 compliant types
 - Support for TimeTap-specific types (id, uuid, email, url, etc.)
 - Handling of array notation, nullable types, and complex type expressions
+- OpenAPI 3.1.1 specification generation with Jackson YAML processing
+- Schema creation from extracted properties with proper type mapping
+- Loading and merging with existing OpenAPI specification files
 
 ### 🚧 In Development
 
-- OpenAPI 3.1.1 specification generation
 - Command-line interface with configurable options
-- File merging with existing OpenAPI specifications
+- Main workflow orchestration and error handling
 
 ## Requirements
 
@@ -85,7 +87,8 @@ The project is being developed using a spec-driven approach. You can track progr
 - ✅ **Task 4**: HTML parsing with JSoup for element extraction
 - ✅ **Task 5**: Table extraction logic with fuzzy column matching
 - ✅ **Task 6**: Property type mapping from HTML to OpenAPI types
-- 🚧 **Task 7**: OpenAPI specification generation (next)
+- ✅ **Task 7**: OpenAPI specification generation with YAML processing
+- 🚧 **Task 8**: Command-line interface implementation (next)
 
 ### For Developers
 

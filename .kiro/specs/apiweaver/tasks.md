@@ -42,7 +42,7 @@
   - Write unit tests for type mapping scenarios
   - _Requirements: 4.4, 4.5, 4.6_
 
-- [ ] 7. Implement OpenAPI specification generation
+- [x] 7. Implement OpenAPI specification generation
   - Create OpenApi31Generator class to generate OpenAPI 3.1.1 compliant schemas
   - Implement methods to create new OpenAPI specifications
   - Implement methods to load and merge with existing OpenAPI files
