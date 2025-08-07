@@ -17,24 +17,32 @@ public class ApiWeaverCli {
     private static final int DEFAULT_TIMEOUT_MS = 30000;
     
     public static void main(String[] args) {
-        logger.info("Starting ApiWeaver CLI with {} arguments", args.length);
-        logger.debug("Arguments: {}", String.join(" ", args));
+        logger.info("Starting ApiWeaver application");
         
-        ApiWeaverCli cli = new ApiWeaverCli();
         try {
+            ApiWeaverCli cli = new ApiWeaverCli();
             Configuration config = cli.parseArguments(args);
+            
             if (config != null) {
-                logger.info("Configuration parsed successfully: {}", config);
-                // TODO: Implement main workflow orchestration
-                System.out.println("Configuration parsed successfully: " + config);
-            } else {
-                logger.debug("Configuration is null (help was displayed)");
+                logger.info("Configuration parsed successfully: URL={}, Output={}", 
+                    config.getUrl(), config.getOutputFile());
+                
+                // Execute main workflow
+                cli.executeWorkflow(config);
             }
-        } catch (Exception e) {
-            logger.error("Application error: {}", e.getMessage(), e);
-            System.err.println("Error: " + e.getMessage());
+            
+        } catch (ParseException e) {
+            logger.error("Failed to parse command-line arguments: {}", e.getMessage());
             System.exit(1);
+        } catch (ApiWeaverException e) {
+            logger.error("ApiWeaver processing error: {}", e.getMessage(), e);
+            System.exit(2);
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred: {}", e.getMessage(), e);
+            System.exit(3);
         }
+        
+        logger.info("ApiWeaver application completed successfully");
     }
     
     /**
@@ -175,6 +183,215 @@ public class ApiWeaverCli {
         String url = config.getUrl();
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             throw new ParseException("URL must start with http:// or https://");
+        }
+    }
+    
+    /**
+     * Executes the main workflow that coordinates all components.
+     * 
+     * @param config the validated configuration
+     * @throws ApiWeaverException if any step in the workflow fails
+     */
+    private void executeWorkflow(Configuration config) throws ApiWeaverException {
+        logger.info("Starting main workflow execution");
+        
+        try {
+            // Step 1: Fetch HTML content
+            reportProgress("Fetching HTML content from: " + config.getUrl(), config.isVerbose());
+            UrlFetcher fetcher = new HttpUrlFetcher(config.getTimeoutMs(), "ApiWeaver/1.0");
+            String htmlContent = fetcher.fetchHtmlContent(config.getUrl());
+            logger.info("Successfully fetched {} characters of HTML content", htmlContent.length());
+            
+            // Step 2: Parse HTML and find target elements
+            reportProgress("Parsing HTML content and locating target elements", config.isVerbose());
+            HtmlParser parser = new JSoupHtmlParser();
+            org.jsoup.nodes.Document doc = parser.parseHtml(htmlContent);
+            
+            // Find H2 elements with ObjectValues suffix - validate single match
+            java.util.List<org.jsoup.nodes.Element> h2Elements = parser.findH2ElementsWithIdEndingIn(doc, "ObjectValues");
+            validateH2ElementMatching(h2Elements);
+            
+            // Get the first (and should be only) H2 element
+            org.jsoup.nodes.Element targetH2 = h2Elements.get(0);
+            logger.info("Found target H2 element with id: {}", targetH2.attr("id"));
+            
+            // Find the table following this H2
+            org.jsoup.nodes.Element targetTable = parser.findFirstTableAfterElement(doc, targetH2);
+            if (targetTable == null) {
+                throw new ExtractionException("No table found after H2 element with id: " + targetH2.attr("id"));
+            }
+            logger.info("Found target table with {} rows", targetTable.select("tr").size());
+            
+            // Step 3: Extract property definitions from table
+            reportProgress("Extracting property definitions from table", config.isVerbose());
+            TableExtractor extractor = new PropertyTableExtractor();
+            java.util.List<PropertyDefinition> properties = extractor.extractProperties(targetTable);
+            logger.info("Successfully extracted {} property definitions", properties.size());
+            
+            // Step 4: Generate or amend OpenAPI specification
+            reportProgress("Generating OpenAPI specification", config.isVerbose());
+            OpenApi31Generator generator = new OpenApi31Generator();
+            
+            // Convert PropertyDefinitions to OpenApiProperties
+            java.util.List<OpenApiProperty> openApiProperties = convertToOpenApiProperties(properties);
+            
+            OpenApiSpec result;
+            if (config.getExistingSpecFile() != null) {
+                reportProgress("Amending existing OpenAPI file: " + config.getExistingSpecFile(), config.isVerbose());
+                // Load existing spec
+                OpenApiSpec existingSpec = loadExistingSpec(config.getExistingSpecFile());
+                result = generator.generateOrAmendSpec(openApiProperties, existingSpec);
+            } else {
+                reportProgress("Creating new OpenAPI specification", config.isVerbose());
+                result = generator.generateOrAmendSpec(openApiProperties, null);
+            }
+            
+            // Step 5: Write output file
+            reportProgress("Writing output to: " + config.getOutputFile(), config.isVerbose());
+            String yamlContent = convertSpecToYaml(result);
+            try (java.io.FileWriter writer = new java.io.FileWriter(config.getOutputFile())) {
+                writer.write(yamlContent);
+            } catch (java.io.IOException e) {
+                throw new GenerationException("Failed to write output file: " + config.getOutputFile(), e);
+            }
+            
+            // Success reporting
+            reportProgress("✅ Successfully generated OpenAPI specification", true);
+            System.out.println("OpenAPI specification written to: " + config.getOutputFile());
+            System.out.println("Processed " + properties.size() + " property definitions");
+            
+            logger.info("Main workflow completed successfully");
+            
+        } catch (ApiWeaverException e) {
+            logger.error("Workflow failed: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error in workflow: {}", e.getMessage(), e);
+            throw new ApiWeaverException("Workflow execution failed", e);
+        }
+    }
+    
+    /**
+     * Validates H2 element matching according to requirements.
+     * Should find exactly one match, warn if multiple found.
+     * 
+     * @param h2Elements the list of found H2 elements
+     * @throws ExtractionException if no elements found
+     */
+    private void validateH2ElementMatching(java.util.List<org.jsoup.nodes.Element> h2Elements) throws ExtractionException {
+        if (h2Elements.isEmpty()) {
+            throw new ExtractionException("No H2 elements found with id ending in 'ObjectValues'");
+        }
+        
+        if (h2Elements.size() > 1) {
+            logger.warn("Multiple H2 elements found with 'ObjectValues' suffix ({}). Processing only the first one.", h2Elements.size());
+            System.err.println("⚠️  Warning: Found " + h2Elements.size() + " H2 elements with 'ObjectValues' suffix. Processing only the first one.");
+            
+            // Log details about all found elements for debugging
+            for (int i = 0; i < h2Elements.size(); i++) {
+                var element = h2Elements.get(i);
+                logger.warn("H2 element {}: id='{}', text='{}'", i + 1, element.attr("id"), element.text());
+            }
+        }
+    }
+    
+    /**
+     * Reports progress to the user based on verbosity settings.
+     * 
+     * @param message the progress message
+     * @param verbose whether to display the message
+     */
+    private void reportProgress(String message, boolean verbose) {
+        if (verbose) {
+            System.out.println("[INFO] " + message);
+        }
+        logger.debug("Progress: {}", message);
+    }
+    
+    /**
+     * Converts PropertyDefinition objects to OpenApiProperty objects.
+     * 
+     * @param properties the list of property definitions
+     * @return list of OpenAPI properties
+     */
+    private java.util.List<OpenApiProperty> convertToOpenApiProperties(java.util.List<PropertyDefinition> properties) {
+        java.util.List<OpenApiProperty> openApiProperties = new java.util.ArrayList<>();
+        TimeTapPropertyMapper mapper = new TimeTapPropertyMapper();
+        
+        for (PropertyDefinition propDef : properties) {
+            try {
+                OpenApiProperty openApiProp = mapper.mapToOpenApiProperty(propDef);
+                openApiProperties.add(openApiProp);
+                logger.debug("Converted property: {} -> {}", propDef.getName(), openApiProp.getName());
+            } catch (Exception e) {
+                logger.warn("Failed to convert property '{}': {}", propDef.getName(), e.getMessage());
+                // Continue with other properties
+            }
+        }
+        
+        logger.info("Converted {} out of {} property definitions to OpenAPI properties", 
+            openApiProperties.size(), properties.size());
+        return openApiProperties;
+    }
+    
+    /**
+     * Loads an existing OpenAPI specification from file.
+     * 
+     * @param filePath the path to the existing spec file
+     * @return the loaded OpenAPI specification
+     * @throws GenerationException if the file cannot be loaded
+     */
+    private OpenApiSpec loadExistingSpec(String filePath) throws GenerationException {
+        try {
+            logger.info("Loading existing OpenAPI specification from: {}", filePath);
+            
+            // Read the file content
+            java.nio.file.Path path = java.nio.file.Paths.get(filePath);
+            if (!java.nio.file.Files.exists(path)) {
+                throw new GenerationException("Existing spec file not found: " + filePath);
+            }
+            
+            String yamlContent = java.nio.file.Files.readString(path, java.nio.charset.StandardCharsets.UTF_8);
+            
+            // Parse YAML to OpenApiSpec
+            com.fasterxml.jackson.databind.ObjectMapper yamlMapper = new com.fasterxml.jackson.databind.ObjectMapper(
+                new com.fasterxml.jackson.dataformat.yaml.YAMLFactory());
+            
+            OpenApiSpec spec = yamlMapper.readValue(yamlContent, OpenApiSpec.class);
+            logger.info("Successfully loaded existing OpenAPI specification");
+            return spec;
+            
+        } catch (java.io.IOException e) {
+            logger.error("Failed to load existing spec file: {}", e.getMessage());
+            throw new GenerationException("Failed to load existing OpenAPI specification from: " + filePath, e);
+        }
+    }
+    
+    /**
+     * Converts an OpenApiSpec object to YAML string.
+     * 
+     * @param spec the OpenAPI specification
+     * @return YAML representation of the spec
+     * @throws GenerationException if conversion fails
+     */
+    private String convertSpecToYaml(OpenApiSpec spec) throws GenerationException {
+        try {
+            logger.debug("Converting OpenAPI spec to YAML format");
+            
+            com.fasterxml.jackson.databind.ObjectMapper yamlMapper = new com.fasterxml.jackson.databind.ObjectMapper(
+                new com.fasterxml.jackson.dataformat.yaml.YAMLFactory());
+            
+            // Configure mapper for clean YAML output
+            yamlMapper.configure(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+            yamlMapper.configure(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT, true);
+            
+            String yamlContent = yamlMapper.writeValueAsString(spec);
+            logger.debug("Successfully converted spec to YAML ({} characters)", yamlContent.length());
+            return yamlContent;
+            
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            logger.error("Failed to convert OpenAPI spec to YAML: {}", e.getMessage());
+            throw new GenerationException("Failed to convert OpenAPI specification to YAML", e);
         }
     }
 }

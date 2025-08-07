@@ -38,9 +38,14 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 - SLF4J logging integration with configurable log levels and file output
 - Robust error recovery and detailed error reporting for debugging
 
+- Main workflow orchestration with complete component coordination
+- Progress reporting and user feedback with verbose mode support
+- H2 element validation with warnings for multiple matches
+- Integration tests for complete workflow scenarios
+
 ### 🚧 In Development
 
-- Main workflow orchestration and error handling
+- Maven build configuration and executable JAR creation
 
 ## Requirements
 

@@ -108,8 +108,9 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 
 #### 🚧 Planned Components
 
-- **Main Workflow**: Orchestration of all components for complete processing
+- **Main Workflow**: Complete orchestration of all components with progress reporting
 - **Enhanced Logging**: SLF4J-based logging throughout the application
+- **Integration Testing**: Comprehensive workflow validation and component coordination tests
 
 ### Architecture Details
 
@@ -152,6 +153,26 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - Detailed error messages with context for debugging
 - Proper resource cleanup in error scenarios
 - Validation at component boundaries to fail fast
+
+#### Main Workflow Orchestration
+
+**Workflow Coordination**
+- `ApiWeaverCli.executeWorkflow()`: Coordinates all components in proper sequence
+- Step-by-step execution: URL fetching → HTML parsing → element validation → table extraction → OpenAPI generation → file output
+- Comprehensive error handling with specific exit codes for different failure types
+- Progress reporting with configurable verbosity levels
+
+**H2 Element Validation**
+- Validates exactly one H2 element with "ObjectValues" suffix is found
+- Issues warnings when multiple matching elements are detected
+- Processes only the first matching element for consistency
+- Detailed logging of all found elements for debugging
+
+**Integration Testing**
+- `WorkflowIntegrationTest`: Tests complete workflow coordination
+- Validates argument parsing and configuration handling
+- Tests H2 element validation logic with multiple scenarios
+- Verifies progress reporting and helper method functionality
 
 #### Table Extraction Layer
 
@@ -223,6 +244,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **TimeTapPropertyMapper**: 23 tests for HTML to OpenAPI type mapping
 - **OpenApi31Generator**: 10 comprehensive tests for OpenAPI generation, file I/O, and schema merging
 - **ErrorHandlingTest**: 23 comprehensive tests covering all error scenarios and exception handling across components
+- **WorkflowIntegrationTest**: 7 integration tests for complete workflow orchestration and component coordination
 
 ### Test Data (Planned)
 
