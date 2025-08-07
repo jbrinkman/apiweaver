@@ -26,6 +26,9 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 - Row parsing with validation and error handling for malformed data
 - Support for various boolean value formats (true/false, yes/no, 1/0, etc.)
 - Adaptive parsing for different HTML table structures
+- Property type mapping from HTML types to OpenAPI 3.1.1 compliant types
+- Support for TimeTap-specific types (id, uuid, email, url, etc.)
+- Handling of array notation, nullable types, and complex type expressions
 
 ### 🚧 In Development
 
@@ -81,7 +84,8 @@ The project is being developed using a spec-driven approach. You can track progr
 - ✅ **Task 3**: Implement URL fetching and HTTP handling
 - ✅ **Task 4**: HTML parsing with JSoup for element extraction
 - ✅ **Task 5**: Table extraction logic with fuzzy column matching
-- 🚧 **Task 6**: Property type mapping (next)
+- ✅ **Task 6**: Property type mapping from HTML to OpenAPI types
+- 🚧 **Task 7**: OpenAPI specification generation (next)
 
 ### For Developers
 

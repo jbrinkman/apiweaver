@@ -55,6 +55,8 @@ apiweaver/
 │   │               ├── OpenApiProperty.java    # OpenAPI property model
 │   │               ├── OpenApiSpec.java        # OpenAPI specification model
 │   │               ├── PropertyDefinition.java # Property definition model
+│   │               ├── PropertyMapper.java     # Property mapping interface
+│   │               ├── TimeTapPropertyMapper.java # HTML to OpenAPI type mapper
 │   │               └── UrlFetcher.java         # URL fetching interface
 │   └── test/
 │       └── java/
@@ -65,7 +67,8 @@ apiweaver/
 │                   ├── JSoupHtmlParserTest.java
 │                   ├── OpenApiPropertyTest.java
 │                   ├── OpenApiSpecTest.java
-│                   └── PropertyDefinitionTest.java
+│                   ├── PropertyDefinitionTest.java
+│                   └── TimeTapPropertyMapperTest.java
 ├── .kiro/
 │   ├── specs/
 │   │   └── apiweaver/              # Feature specifications
@@ -89,6 +92,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **HTTP Fetching**: URL fetching with timeout and user-agent configuration via `HttpUrlFetcher`
 - **HTML Parsing**: JSoup-based HTML parsing with `JSoupHtmlParser` for element extraction
 - **Table Extraction**: Property extraction from HTML tables with `PropertyTableExtractor`
+- **Property Type Mapping**: HTML to OpenAPI type conversion with `TimeTapPropertyMapper`
 - **Error Handling**: Comprehensive exception handling with `FetchException` and `ExtractionException`
 
 #### 🚧 Planned Components
@@ -169,6 +173,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **OpenApiProperty**: 11 tests for property model validation
 - **OpenApiSpec**: 9 tests for specification model handling
 - **PropertyDefinition**: 11 tests for property definition validation
+- **TimeTapPropertyMapper**: 23 tests for HTML to OpenAPI type mapping
 
 ### Test Data (Planned)
 

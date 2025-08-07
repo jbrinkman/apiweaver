@@ -35,7 +35,7 @@
   - Write unit tests for various table structures and edge cases
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 6. Implement property type mapping
+- [x] 6. Implement property type mapping
   - Create TimeTapPropertyMapper class to map HTML types to OpenAPI types
   - Define type mapping constants for common TimeTap API types
   - Implement logic to handle required and writable flags
