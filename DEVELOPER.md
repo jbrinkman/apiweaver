@@ -44,25 +44,31 @@ This document provides information for developers who want to contribute to or m
 apiweaver/
 ├── src/
 │   ├── main/
-│   │   ├── java/
-│   │   │   └── com/
-│   │   │       └── apiweaver/
-│   │   │           ├── cli/           # Command-line interface
-│   │   │           ├── fetcher/       # URL fetching components
-│   │   │           ├── parser/        # HTML parsing components
-│   │   │           ├── extractor/     # Table extraction logic
-│   │   │           ├── mapper/        # Property type mapping
-│   │   │           ├── generator/     # OpenAPI generation
-│   │   │           ├── model/         # Data models
-│   │   │           └── exception/     # Exception classes
-│   │   └── resources/
-│   │       └── logback.xml           # Logging configuration
+│   │   └── java/
+│   │       └── com/
+│   │           └── apiweaver/
+│   │               ├── Configuration.java      # Configuration management
+│   │               ├── FetchException.java     # HTTP fetching exceptions
+│   │               ├── HttpUrlFetcher.java     # HTTP URL fetching implementation
+│   │               ├── OpenApiProperty.java    # OpenAPI property model
+│   │               ├── OpenApiSpec.java        # OpenAPI specification model
+│   │               ├── PropertyDefinition.java # Property definition model
+│   │               └── UrlFetcher.java         # URL fetching interface
 │   └── test/
-│       ├── java/                     # Unit and integration tests
-│       └── resources/                # Test resources (sample HTML files)
-├── pom.xml                          # Maven configuration
+│       └── java/
+│           └── com/
+│               └── apiweaver/
+│                   ├── ConfigurationTest.java
+│                   ├── HttpUrlFetcherTest.java
+│                   ├── OpenApiPropertyTest.java
+│                   ├── OpenApiSpecTest.java
+│                   └── PropertyDefinitionTest.java
+├── .kiro/
+│   ├── specs/
+│   │   └── apiweaver/              # Feature specifications
+│   └── steering/                   # Development rules and guidelines
+├── pom.xml                         # Maven configuration
 ├── README.md
-├── LICENSE
 ├── DEVELOPER.md
 └── CONTRIBUTING.md
 ```
@@ -71,22 +77,51 @@ apiweaver/
 
 ApiWeaver follows a modular architecture with clear separation of concerns:
 
-- **CLI Layer**: Handles command-line arguments and user interaction
-- **Fetcher Layer**: Manages HTTP requests and URL handling
-- **Parser Layer**: HTML parsing using JSoup
+### Current Implementation Status
+
+#### ✅ Completed Components
+
+- **Core Models**: Data structures for OpenAPI properties, specifications, and property definitions
+- **Configuration Management**: Centralized configuration handling with validation
+- **HTTP Fetching**: URL fetching with timeout and user-agent configuration via `HttpUrlFetcher`
+- **Error Handling**: Comprehensive exception handling with `FetchException`
+
+#### 🚧 Planned Components
+
+- **CLI Layer**: Command-line arguments and user interaction
+- **Parser Layer**: HTML parsing and DOM manipulation
 - **Extractor Layer**: Table data extraction and processing
 - **Mapper Layer**: Type mapping between HTML and OpenAPI formats
 - **Generator Layer**: OpenAPI specification generation and file operations
 
+### Architecture Details
+
+#### HTTP Fetching Layer
+
+- `UrlFetcher` interface provides abstraction for HTTP operations
+- `HttpUrlFetcher` implements HTTP/HTTPS fetching using Java's built-in `HttpURLConnection`
+- Configurable timeout and user-agent settings
+- Protocol validation (HTTP/HTTPS only)
+- Comprehensive error handling for network failures, timeouts, and invalid URLs
+
 ## Key Dependencies
 
-- **JSoup**: HTML parsing and DOM manipulation
-- **Jackson**: YAML/JSON processing for OpenAPI files
-- **Apache Commons CLI**: Command-line argument parsing
-- **SLF4J + Logback**: Logging framework
+### Runtime Dependencies
+
+- **Java 11+**: Core runtime requirement
+- **Built-in HttpURLConnection**: HTTP client for URL fetching (no external dependencies)
+
+### Test Dependencies
+
 - **JUnit 5**: Testing framework
 - **Mockito**: Mocking for unit tests
-- **AssertJ**: Fluent assertions
+
+### Planned Dependencies
+
+- **JSoup**: HTML parsing and DOM manipulation (to be added)
+- **Jackson**: YAML/JSON processing for OpenAPI files (to be added)
+- **Apache Commons CLI**: Command-line argument parsing (to be added)
+- **SLF4J + Logback**: Logging framework (to be added)
 
 ## Testing Strategy
 
@@ -104,7 +139,15 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - Test file I/O operations
 - Validate complete workflow scenarios
 
-### Test Data
+### Current Test Coverage
+
+- **HttpUrlFetcher**: 16 comprehensive unit tests covering all error scenarios
+- **Configuration**: 15 tests for configuration validation and management
+- **OpenApiProperty**: 11 tests for property model validation
+- **OpenApiSpec**: 9 tests for specification model handling
+- **PropertyDefinition**: 11 tests for property definition validation
+
+### Test Data (Planned)
 
 - Sample HTML files in `src/test/resources/html/`
 - Expected OpenAPI outputs in `src/test/resources/openapi/`
@@ -136,10 +179,17 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 
 ## Building and Packaging
 
-### Maven Profiles
+### Current Maven Configuration
+
+- **Java 11**: Source and target compatibility
+- **JUnit 5**: Testing framework (version 5.10.1)
+- **Mockito**: Mocking framework (version 5.7.0)
+- **Maven Compiler Plugin**: Version 3.11.0
+
+### Maven Profiles (Planned)
 
 - `default`: Standard build with unit tests
-- `integration-test`: Includes integration tests
+- `integration-test`: Includes integration tests  
 - `release`: Optimized build for releases
 
 ### Creating Releases

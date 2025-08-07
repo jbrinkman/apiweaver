@@ -8,12 +8,21 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 
 ## Features
 
-- Parse HTML documentation from URLs
-- Extract property definitions from HTML tables
-- Generate OpenAPI 3.1.1 compliant specifications
-- Merge with existing OpenAPI files
+### ✅ Currently Implemented
+
+- HTTP/HTTPS URL fetching with configurable timeout and user-agent
+- Comprehensive error handling for network operations
+- Core data models for OpenAPI specifications and properties
+- Configuration management with validation
+- Extensive unit test coverage
+
+### 🚧 In Development
+
+- HTML documentation parsing from URLs
+- Property definition extraction from HTML tables
+- OpenAPI 3.1.1 specification generation
 - Command-line interface with configurable options
-- Comprehensive error handling and logging
+- File merging with existing OpenAPI specifications
 
 ## Requirements
 
@@ -39,6 +48,10 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 
 ## Usage
 
+> **Note**: ApiWeaver is currently in active development. The command-line interface is not yet implemented. The current implementation provides core HTTP fetching capabilities and data models.
+
+### Planned Usage (Coming Soon)
+
 ```bash
 java -jar target/apiweaver.jar [OPTIONS] <URL>
 
@@ -50,18 +63,27 @@ Options:
   -h, --help             Display help information
 ```
 
-### Examples
+### Current Development Status
 
-Generate a new OpenAPI specification:
+The project is being developed using a spec-driven approach. You can track progress in the `.kiro/specs/apiweaver/` directory:
+
+- ✅ **Task 1**: Set up Maven project structure and core interfaces
+- ✅ **Task 2**: Implement core data models with validation  
+- ✅ **Task 3**: Implement URL fetching and HTTP handling
+- 🚧 **Task 4**: HTML parsing and table extraction (next)
+
+### For Developers
+
+To run the current test suite:
 
 ```bash
-java -jar target/apiweaver.jar https://example.com/api-docs
+mvn test
 ```
 
-Amend an existing OpenAPI file:
+To build the project:
 
 ```bash
-java -jar target/apiweaver.jar -e existing-api.yaml -o updated-api.yaml https://example.com/api-docs
+mvn clean package
 ```
 
 ## Contributing
