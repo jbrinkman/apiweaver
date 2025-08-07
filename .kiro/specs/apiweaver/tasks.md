@@ -28,7 +28,7 @@
   - Write unit tests with sample HTML structures
   - _Requirements: 2.1, 2.2, 7.1_
 
-- [ ] 5. Implement table extraction logic
+- [x] 5. Implement table extraction logic
   - Create PropertyTableExtractor class to extract data from HTML tables
   - Implement column identification logic with fuzzy matching for headers
   - Implement row parsing to extract property name, type, required, writable, and description

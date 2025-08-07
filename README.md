@@ -19,9 +19,16 @@ ApiWeaver extracts API object definitions from TimeTap's HTML documentation by l
 - Configuration management with validation
 - Extensive unit test coverage
 
+### ✅ Currently Implemented
+
+- Property definition extraction from HTML tables with fuzzy column matching
+- Column identification for Property Name, Type, Required, Writable, and Description
+- Row parsing with validation and error handling for malformed data
+- Support for various boolean value formats (true/false, yes/no, 1/0, etc.)
+- Adaptive parsing for different HTML table structures
+
 ### 🚧 In Development
 
-- Property definition extraction from HTML tables
 - OpenAPI 3.1.1 specification generation
 - Command-line interface with configurable options
 - File merging with existing OpenAPI specifications
@@ -73,7 +80,8 @@ The project is being developed using a spec-driven approach. You can track progr
 - ✅ **Task 2**: Implement core data models with validation  
 - ✅ **Task 3**: Implement URL fetching and HTTP handling
 - ✅ **Task 4**: HTML parsing with JSoup for element extraction
-- 🚧 **Task 5**: Table extraction logic (next)
+- ✅ **Task 5**: Table extraction logic with fuzzy column matching
+- 🚧 **Task 6**: Property type mapping (next)
 
 ### For Developers
 

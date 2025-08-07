@@ -88,12 +88,12 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - **Configuration Management**: Centralized configuration handling with validation
 - **HTTP Fetching**: URL fetching with timeout and user-agent configuration via `HttpUrlFetcher`
 - **HTML Parsing**: JSoup-based HTML parsing with `JSoupHtmlParser` for element extraction
-- **Error Handling**: Comprehensive exception handling with `FetchException`
+- **Table Extraction**: Property extraction from HTML tables with `PropertyTableExtractor`
+- **Error Handling**: Comprehensive exception handling with `FetchException` and `ExtractionException`
 
 #### 🚧 Planned Components
 
 - **CLI Layer**: Command-line arguments and user interaction
-- **Extractor Layer**: Table data extraction and processing
 - **Mapper Layer**: Type mapping between HTML and OpenAPI formats
 - **Generator Layer**: OpenAPI specification generation and file operations
 
@@ -114,6 +114,16 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 - Finds H2 elements with id attributes ending in specific suffixes (e.g., "ObjectValues")
 - Locates first table element following a given element in document order
 - Handles various HTML structures and provides detailed error messages
+
+#### Table Extraction Layer
+
+- `TableExtractor` interface provides abstraction for extracting property data from HTML tables
+- `PropertyTableExtractor` implements table extraction with fuzzy column matching
+- Identifies columns for Property Name, Type, Required, Writable, and Description using pattern matching
+- Supports various header formats and uses fuzzy matching for flexibility
+- Parses boolean values in multiple formats (true/false, yes/no, 1/0, required/mandatory)
+- Handles malformed rows gracefully by skipping invalid data and continuing processing
+- Detects header-like content in first rows and adjusts parsing accordingly
 
 ## Key Dependencies
 
@@ -154,6 +164,7 @@ ApiWeaver follows a modular architecture with clear separation of concerns:
 
 - **HttpUrlFetcher**: 16 comprehensive unit tests covering all error scenarios
 - **JSoupHtmlParser**: 19 tests covering HTML parsing, element finding, and table extraction
+- **PropertyTableExtractor**: 11 tests covering table extraction, column matching, and edge cases
 - **Configuration**: 15 tests for configuration validation and management
 - **OpenApiProperty**: 11 tests for property model validation
 - **OpenApiSpec**: 9 tests for specification model handling
