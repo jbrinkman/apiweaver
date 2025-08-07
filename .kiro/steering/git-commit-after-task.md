@@ -9,15 +9,24 @@ inclusion: always
 After completing any task from a spec, you MUST perform the following git operations:
 
 1. **Stage all changes**: `git add .`
-2. **Commit with descriptive message**: `git commit -m "Complete task: [task name]"`
+2. **Commit with conventional commit message**: `git commit -m "[type]([scope]): [description]"`
 3. **Push to remote**: `git push`
 
 ## Commit Message Format
 
-Use this format for commit messages:
+Use conventional commit format for all commit messages:
 
-- `Complete task: [task number] [brief task description]`
-- Example: `Complete task: 2. Set up Maven project structure and core interfaces`
+- **Format**: `[type]([scope]): [description]`
+- **Type**: Use `feat` for new features, `fix` for bug fixes, `refactor` for code refactoring, `test` for adding tests, `docs` for documentation, `chore` for maintenance tasks
+- **Scope**: Use the task number (e.g., `task-2`, `task-3-1`)
+- **Description**: Brief description of what was implemented (lowercase, no period)
+
+### Examples
+
+- `feat(task-2): set up maven project structure and core interfaces`
+- `feat(task-3-1): implement http client for url fetching`
+- `test(task-4-2): add unit tests for property definition validation`
+- `refactor(task-5): optimize openapi property mapping logic`
 
 ## When to Apply
 
